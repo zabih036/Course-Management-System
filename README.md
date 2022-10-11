@@ -31,3 +31,14 @@ System Features:
 13 - Add More Classes to Teacher
 
 14 - Much more ....
+
+![Capture](https://user-images.githubusercontent.com/52412292/195089745-ec0cd8b7-c115-4648-8c2d-f3cf25ace1ac.PNG)
+
+![Capture2](https://user-images.githubusercontent.com/52412292/195089838-f6ec8723-616e-41bf-b6b3-f20f2c5d6f8c.PNG)
+
+![Capture4](https://user-images.githubusercontent.com/52412292/195090005-b28a4912-6fa1-42ad-8331-b95dc897e555.PNG)
+
+![Capture5](https://user-images.githubusercontent.com/52412292/195090112-b4aa90dc-f98c-4a4d-a7c3-61a13abe480b.PNG)
+
+
+
