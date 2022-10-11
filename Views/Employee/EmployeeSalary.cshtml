@@ -1,0 +1,1103 @@
+﻿@model AllViewModel
+@{
+    ViewData["Title"] = "کارمندانو راجستر کولو فارم";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#employeeSalaryView").addClass("active")</script>
+
+
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorize
+
+@if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+
+    @await Html.PartialAsync("AccessDeniedPartial")
+
+
+    ViewBag.view = "d-none";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+
+@if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "";
+}
+
+
+<div class="row">
+
+    <div class="col-md-12" style="text-align:center">
+        <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+            Employee Salary Form
+        </h2>
+        <hr />
+    </div>
+    <div class="col-md-12 ">
+
+        <button type="button" class="btn btn-info box-shadow-1" id="btnFixedSalary">Fixed Salary</button>
+        &nbsp;
+        <button type="button" class="btn btn-success box-shadow-1" id="btnPercentageSalary">Percentage Salary</button>
+        &nbsp;
+
+        <button type="button" class="btn btn-primary box-shadow-1" id="btnHourlySalary">Hourly Salary</button>
+
+    </div>
+
+</div>
+    &nbsp;&nbsp;
+<div class="container-fluid card   @ViewBag.view">
+
+    <div class="card col-md-12">
+        <div class="card-header ">
+            <h4 class="card-title ">
+                <strong></strong>
+            </h4>
+            <hr />
+            <a class="heading-elements-toggle">
+                <i class="fa fa-ellipsis-v font-medium-3"></i>
+            </a>
+            <div class="heading-elements">
+                <ul class="list-inline mb-0">
+
+                    <li>
+                        <a data-action="expand"><i class="ft-maximize"></i></a>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+
+        <section id="divTableSalary">
+            <h3 class="font-weight-bold font-italic text-center text-info">Fixed Salary</h3>
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead" id="tblEmployeeSalary">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+
+                        <th style="max-width:10px;">#</th>
+                        <th class="col-md-3">Employee Name</th>
+                        <th class="col-md-1"> Phone</th>
+                        <th class="col-md-1">  Email</th>
+                        <th class="col-md-1">  Salary</th>
+                        <th class="col-md-1">  Remain</th>
+                        <th class="col-md-1">Last Paid</th>
+                        <th class="">Last Paid Date</th>
+                        <th class="@ViewBag.Insert"> Pay</th>
+                        <th class=" @ViewBag.Edit">  Edit</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+        <section id="divTableSalaryPercentage" style="display:none">
+            <h3 class="font-weight-bold font-italic text-center text-success">Percentage Salary</h3>
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead" id="tblEmployeeSalaryPercentage">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+
+                        <th style="max-width:10px;">#</th>
+                        <th class="col-md-3">Employee Name</th>
+                        <th class="col-md-1">Phone</th>
+                        <th class="col-md-1">Class Name</th>
+                        <th class="col-md-1">Fees</th>
+                        <th class="col-md-1">Students</th>
+                        <th class="col-md-1">Percentage</th>
+                        <th class="col-md-1">Total Amount</th>
+                        <th class="col-md-1">Remain</th>
+                        <th class="col-md-1">Last Paid</th>
+                        <th class="col-md-1">Last Paid Date</th>
+                        <th class="@ViewBag.Insert"> Pay</th>
+                        <th class=" @ViewBag.Edit">  Edit</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+        <section id="divTableSalaryHourly" style="display:none">
+            <h3 class="font-weight-bold font-italic text-center text-primary">Hourly Salary</h3>
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead" id="tblEmployeeSalaryHourly">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+
+                        <th style="max-width:10px;">#</th>
+                        <th class="col-md-3">Employee Name</th>
+                        <th class="col-md-1">Phone</th>
+                        <th class="col-md-1">Class Name</th>
+                        <th class="col-md-1">Per Hour</th>
+                        <th class="col-md-1">Total Hours</th>
+                        <th class="col-md-1">Total Amount</th>
+                        <th class="col-md-1">Remain</th>
+                        <th class="col-md-1">Last Paid</th>
+                        <th class="col-md-1">Last Paid Date</th>
+                        <th class="@ViewBag.Insert"> Pay</th>
+                        <th class=" @ViewBag.Edit">  Edit</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+        <div class="row">
+            <button id="btnr" class="btn btn-info col-md-2" style="display:none;margin-top:-20px;"> Print  <span class="ft-printer"></span></button>&nbsp;&nbsp;
+            <button id="btnBack" class="btn btn-info col-md-2 right" style="display:none;margin-top:-20px; "> Employee List  <span class="fa fa-angle-right"></span></button>
+        </div>
+        <section id="divDetails" class="col-md-12" style="display:none">
+
+
+            <div class="text-center col-md-12">
+                <div class="">
+                    <div class=""><img src="~/images/StaticImages/browse.png" class="round" id="employeeImage" style="height:100px;width:100px; padding:0px;margin:0px;cursor:pointer;" /></div><br />
+                    <div class="row text-center font-medium-3" style="justify-content:center">&nbsp;  Employee Name :&nbsp;&nbsp; <h4 id="name" class="font-medium-4"> ذبیح الله</h4></div><hr />
+                </div>
+            </div>
+            <div class="col-md-10 offset-md-1  row">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h3>Job Date :</h3>
+                    <h3>Email :</h3>
+                    <h3>Phone :</h3>
+                    <h3>Salary :</h3>
+                    <h3>Job Duration :</h3>
+                    <h3>Absent Days :</h3>
+                    <h3>Total Amount :</h3>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+                    <h3 id="hireDate"></h3>
+                    <h3 id="email"></h3>
+                    <h3 id="phone"></h3>
+                    <h3 id="salary"></h3>
+                    <h3 id="duration"></h3>
+                    <h3 id="absentDays"></h3>
+                    <h3 id="absentAmount"></h3>
+                </div>
+
+            </div>
+            <hr />
+            <div class="col-md-10 offset-md-1 row">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h3>Recieved Money </h3>
+
+
+                </div>
+                <div class="col-md-6 text-right " style="max-width:40%;float:left">
+                    <h3>Date</h3>
+
+
+                </div>
+                <div class="col-md-6 text-left offset-md-1" id="divPaid" style="max-width:40%;float:right;margin-right:10%;">
+
+                    <h3 id="paidMoney">0 </h3>
+
+                </div>
+                <div class="col-md-6 text-right " id="divDate" style="max-width:40%;float:left">
+
+                    <h3 id="paidDate">0</h3>
+
+                </div>
+
+            </div><hr />
+            <div class="col-md-8 offset-md-2 row text-center">
+                <div class="col-md-5 text-center" style="max-width:40%;float:right;margin-right:10%;">
+
+                    <h3>Total Salary : </h3>
+                    <h3>Total Recieved : </h3>
+                    <h3>Absent Amount : </h3>
+                    <h3>Remain : </h3>
+
+
+                </div>
+                <div class="col-md-5 " style="max-width:40%;float:left">
+                    <h3 id="totalSalary"></h3>
+                    <h3 id="totalPaid"></h3>
+                    <h3 id="absentAmountT"></h3>
+                    <h3 dir="ltr" id="totalRemain"></h3>
+
+                </div>
+
+
+            </div>
+        </section>
+        <section id="divDetailsP" class="col-md-12" style="display:none">
+
+
+            <div class="text-center col-md-12">
+                <div class="">
+                    <div class=""><img src="~/images/StaticImages/browse.png" class="round" id="employeeImageP" style="height:100px;width:100px; padding:0px;margin:0px;cursor:pointer;" /></div><br />
+                    <div class="row text-center font-medium-3" style="justify-content:center">&nbsp;  Employee Name :&nbsp;&nbsp; <h4 id="nameP" class="font-medium-4"> ذبیح الله</h4></div><hr />
+                </div>
+            </div>
+            <div class="col-md-10 offset-md-1  row ">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h3>Hire Date :</h3>
+                    <h3>Phone :</h3>
+                    <h3>Percentage :</h3>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+                    <h3 id="hireDateP">202-2-2</h3>
+                    <h3 id="phoneP">87907689</h3>
+                    <h3 id="salaryP">20</h3>
+                </div>
+
+            </div>
+            <hr />
+            <h3 class="text-center">Class info</h3>
+            <div class="col-md-10 offset-md-1  row ">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h3>Class Name :</h3>
+                    <h3>Class Fees :</h3>
+                    <h3>Total Students :</h3>
+                    <h3>Absent Dayes :</h3>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+                    <h3 id="classNameP"></h3>
+                    <h3 id="classFeesP"></h3>
+                    <h3 id="totalStudentsP">20</h3>
+                    <h3 id="absentPercentage">20</h3>
+                </div>
+
+            </div>
+            <hr />
+            <div class="col-md-10 offset-md-1 row font-italic">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h4 class="left">Amount Paid :</h4>
+                    <div id="paidAmountP"><h4 class="left">200</h4></div>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+
+                    <h4 class="right">Paid Date :</h4>
+                    <div id="paidAmountDateP"> <h4 class="right">2020-2-20 :</h4></div>
+                </div>
+            </div>
+            <hr />
+            <div class="col-md-8 offset-md-2 row text-center">
+                <div class="col-md-5 text-center" style="max-width:40%;float:right;margin-right:10%;">
+
+                    <h3>Total Amount : </h3>
+                    <h3>Total Recieved : </h3>
+                    <h3>Remain : </h3>
+
+
+                </div>
+                <div class="col-md-5 " style="max-width:40%;float:left">
+                    <h3 id="totalSalaryP"></h3>
+                    <h3 id="totalPaidP"></h3>
+
+                    <h3 dir="ltr" id="totalRemainP"></h3>
+
+                </div>
+
+
+            </div>
+        </section>
+        <section id="divDetailsH" class="col-md-12" style="display:none">
+
+
+            <div class="text-center col-md-12">
+                <div class="">
+                    <div class=""><img src="~/images/StaticImages/browse.png" class="round" id="employeeImageH" style="height:100px;width:100px; padding:0px;margin:0px;cursor:pointer;" /></div><br />
+                    <div class="row text-center font-medium-3" style="justify-content:center">&nbsp;  Employee Name :&nbsp;&nbsp; <h4 id="nameH" class="font-medium-4"> ذبیح الله</h4></div><hr />
+                </div>
+            </div>
+            <div class="col-md-10 offset-md-1  row ">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h3>Hire Date :</h3>
+                    <h3>Phone :</h3>
+                    <h3>Per Hour :</h3>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+                    <h3 id="hireDateH">202-2-2</h3>
+                    <h3 id="phoneH">87907689</h3>
+                    <h3 id="salaryH">20</h3>
+                </div>
+
+            </div>
+            <hr />
+            <h3 class="text-center">Class info</h3>
+            <div class="col-md-10 offset-md-1  row ">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h3>Class Name :</h3>
+                    <h3>Class Fees :</h3>
+                    <h3>Total Hours :</h3>
+                    <h3>Absent Hours :</h3>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+                    <h3 id="classNameH"></h3>
+                    <h3 id="classFeesH"></h3>
+                    <h3 id="totalHoursH"></h3>
+                    <h3 id="absentHours"></h3>
+                </div>
+
+            </div>
+            <hr />
+            <div class="col-md-10 offset-md-1 row font-italic">
+                <div class="col-md-6 text-left offset-md-1" style="max-width:40%;float:right;margin-right:10%;">
+                    <h4 class="left">Amount Paid :</h4>
+                    <div id="paidAmountH"><h4 class="left">200</h4></div>
+                </div>
+                <div class="col-md-6 text-right" style="max-width:40%;float:left;">
+
+                    <h4 class="right">Paid Date :</h4>
+                    <div id="paidAmountDateH"> <h4 class="right">2020-2-20 :</h4></div>
+                </div>
+            </div>
+            <hr />
+            <div class="col-md-8 offset-md-2 row text-center">
+                <div class="col-md-5 text-center" style="max-width:40%;float:right;margin-right:10%;">
+
+                    <h3>Total Amount : </h3>
+                    <h3>Total Recieved : </h3>
+                    <h3>Remain : </h3>
+
+
+                </div>
+                <div class="col-md-5 " style="max-width:40%;float:left">
+                    <h3 id="totalSalaryH"></h3>
+                    <h3 id="totalPaidH"></h3>
+
+                    <h3 dir="ltr" id="totalRemainH"></h3>
+
+                </div>
+
+
+            </div>
+        </section>
+    </div>
+</div>
+
+<form data-ajax="true" asp-action="DeleteEmployee" data-ajax-method="post" asp-controller="Employee" data-ajax-success="deleted(data)">
+    <input hidden id="deleteId" asp-for="employee.EmployeeId" />
+    <input hidden id="deleteEmail" asp-for="employee.Email" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+
+
+<form data-ajax="true" asp-action="LoadEmployeeAllPayments" data-ajax-method="post" asp-controller="Employee" data-ajax-success="EmployeeAllPayments(data)">
+    <input hidden id="employeeId" asp-for="employee.EmployeeId" />
+    <button type="submit" class="d-none" id="btnPayments"></button>
+</form>
+
+@* Add salary modal *@
+
+<div class="modal fade text-left" id="addEmployeeSalaryModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel17" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog " role="document">
+        <form data-ajax="true" asp-controller="Employee" asp-action="AddEmployeeSalary" data-ajax-success="funSuccessEmployeeSalary(data)" data-ajax-method="post" id="frmAddEmployeeSalary">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel17">Employee Salary Payment</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <div class="row text-center container">
+                        <dv class="col-md-10 offset-1">
+                            <input hidden asp-for="salary.EmployeeId" value="0" />
+                            <input hidden asp-for="salary.SalaryId" value="0" />
+                            <input hidden asp-for="salary.ClassId" value="0" />
+                            <div class="form-group">
+                                <label class="" id="salaryLabel">Salary</label>
+                                <input type="number" dir="ltr" id="empSalary" disabled class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="">Old Remain</label>
+                                <input type="number" disabled dir="ltr" id="lastRemain" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="salary.PaidAmount" class=""></label>
+                                <input asp-for="salary.PaidAmount" dir="ltr" class="form-control" />
+                                <span asp-validation-for="salary.PaidAmount" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="">Remain</label>
+                                <input type="number" dir="ltr" disabled id="newRemain" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+
+                        </dv>
+
+                    </div>
+
+
+
+                </div>
+                <div class="modal-footer   @ViewBag.Insert">
+                    <button type="reset" id="btnCloseSalaryPayment" class="btn grey btn-outline-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="btnSubmitEmployeeSalary" class="btn btn-primary btn-icon-md">Pay</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        var printFile = true;
+        var table = "";
+        $(document).ready(function () {
+            LoadEmployeeSalary();
+            LoadEmployeeSalaryPercentage();
+            LoadEmployeeSalaryHourly();
+            $("#btnr").click(function () {
+
+
+                $("#" + printFile).printThis({
+                    debug: false,               // show the iframe for debugging
+                    //importCSS: true,            // import parent page css
+                    importStyle: true,         // import style tags
+                    printContainer: true,       // print outer container/$.selector
+                    loadCSS: "",                // path to additional css file - use an array [] for multiple
+                    pageTitle: "",              // add title to print page
+                    removeInline: false,        // remove inline styles from print elements
+                    removeInlineSelector: "*",  // custom selectors to filter inline styles. removeInline must be true
+                    // printDelay: 333,            // variable print delay
+                    // header: "<h1 style='text-content: center; margin-bottom: 5px;'>افغان فارما شرکت کارمند معاش معلومات!</h1>" ,              // prefix to html
+                    // footer: "<h2 style='justify-content: center; margin-top: 5px;'>آدرس کندهار ولایت جواد حسن مارکیټ!</h2>",              // postfix to html
+                    base: false,                // preserve the BASE tag or accept a string for the URL
+                    formValues: true,           // preserve input/form values
+                    canvas: false,              // copy canvas content
+                    doctypeString: '...',       // enter a different doctype for older markup
+                    removeScripts: false,       // remove script tags from print content
+                    copyTagClasses: true,      // copy classes from the html & body tag
+                    beforePrintEvent: null,     // function for printEvent in iframe
+                    beforePrint: null,          // function called before iframe is filled
+                    afterPrint: null            // function called before iframe is removed
+                });
+
+            })
+        })
+    </script>
+
+    @* employee fixed salary script functions *@
+    <script>
+
+        function LoadEmployeeSalary() {
+
+            $.ajax({
+                url: "/Employee/LoadEmployeeSalary/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+                
+                        var paidDate = new Date(col.paidDate);
+
+                        var currentDate = new Date();
+
+                        var empty = "";
+                        var showBtnPay = "";
+                        var showPayMoney = col.paidAmount;
+                        var showPayDate = "";
+                        if (paidDate.getFullYear() == currentDate.getFullYear() && paidDate.getMonth() == currentDate.getMonth()) {
+                            showBtnPay = "";
+                            showPayMoney = col.paidAmount;
+                            showPayDate = paidDate.toLocaleDateString();
+
+                        } else {
+                            showBtnPay = "";
+                            showPayMoney = "";
+                            showPayDate = "";
+                        }
+                        var clr = "";
+                        if ((col.totalSalary - col.totalPaid) < 0) {
+                            clr = "#f99ea9";
+
+                        }
+                        if ((col.totalSalary - col.totalPaid) > 0) {
+                            clr = "#9ec8ed";
+
+                        }
+                        var remain = 0;
+                        if ((col.totalSalary - col.totalPaid) == null) {
+                            remain = 0;
+
+                        } else {
+                            remain = (col.totalSalary - col.totalPaid) - col.absentAmount;
+
+                        }
+                        var tpaid = 0;
+                        if (col.totalPaid == null) {
+
+                            tpaid = 0;
+                        } else {
+                            tpaid = col.totalPaid;
+
+                        }
+                        var tremain
+                        if (col.totalRemain == null) {
+
+                            tremain = 0;
+                        } else {
+                            tremain = col.totalRemain;
+
+                        }
+                 
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td>' + col.name + '</td>' +
+                            ' <td>' + col.phone + '</td>' +
+                            ' <td>' + col.email + '</td>' +
+                            ' <td>' + col.salary + '</td>' +
+                            ' <td dir="ltr" style="background-color: ' + clr + '">' + remain + '</td>' +
+                            ' <td class=' + showPayMoney + '>' + showPayMoney + '</td>' +
+                            ' <td>' + showPayDate + '</td>' +
+                            ' <td class="' + showBtnPay + '    @ViewBag.Insert"><button type="button" onclick="AddSalary(' + col.id + ',\'' + col.salary + '\',\'' + remain + '\',\'' + 0 + '\',\'' + 3 + '\')" class="btn btn-primary"><i class=""></i>  Pay  </button></td>' + 
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditEmployeeSalary(' + col.id + ',\'' + col.salaryId + '\',\'' + showPayMoney + '\',\'' + remain + '\')" class="btn btn-info"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td ><button type="button" onclick="EmployeeSalaryDetails(' + col.id + ',\'' + col.imagePath + '\',\'' + col.name + '\',\'' + col.hireDate + '\',\'' + col.email + '\',\'' + col.phone + '\',\'' + col.province + '\',\'' + col.salary + '\',\'' + col.totalMonths + '\',\'' + tpaid + '\',\'' + col.totalSalary + '\',\'' + remain + '\',\'' + col.absentCount + '\',\'' + col.absentAmount + '\')" class="btn btn-success"><i class="fa fa-info"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblEmployeeSalary").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblEmployeeSalary>tbody").html("").html(tr);
+
+                    $("#tblEmployeeSalary").DataTable({
+
+                        stateSave: true,
+
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                    })
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function funSuccessEmployeeSalary(data) {
+            LoadEmployeeSalary();
+            LoadEmployeeSalaryPercentage();
+            LoadEmployeeSalaryHourly();
+            $("#btnCloseSalaryPayment").trigger("click");
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            $("#btnSubmitEmployeeSalary").text("Pay");
+        }
+        function EmployeeAllPayments(data) {
+            console.log(date)
+            var divPaid = "";
+            var divDate = "";
+            var amount = "";
+            var date = "";
+            if (data == "") {
+                divDate = 0;
+                divPaid = 0;
+            }
+            $.each(data, function (i, col) {
+                amount = col.paidAmount;
+                date = col.paidDate;
+
+                divPaid += '<h3>' + amount + '</h3>';
+                divDate += '<h3>' + date + '</h3>';
+            })
+            $("#divPaid").html(divPaid);
+            $("#divDate").html(divDate);
+        }
+        function EmployeeSalaryDetails(id, imagePath, name, hireDate, email, phone, province, salary, duration, totalPaid, totalSalary, totalRemain,absentDays,absentAmount) {
+
+            $("#employeeId").val(id);
+            $("#employeeImage").attr("src", imagePath);
+            $("#btnPayments").trigger("click");
+            $("#name").text(name);
+            $("#hireDate").text(hireDate);
+            $("#email").text(email);
+            $("#phone").text(phone);
+            $("#address").text(province);
+            $("#salary").text(salary);
+            $("#duration").text(duration);
+            $("#absentDays").text(absentDays);
+            $("#absentAmount").text(absentAmount);
+            $("#absentAmountT").text(absentAmount);
+            if (totalPaid != null) {
+                $("#totalPaid").text(totalPaid);
+            } else {
+                $("#totalPaid").text(0);
+            }
+            $("#totalRemain").text(totalSalary - totalPaid - absentAmount);
+
+            $("#totalSalary").text(totalSalary);
+            $("#btnr").show();
+            $("#btnBack").show();
+            $("#divInput").hide();
+            $("#divTable").hide();
+            $("#divTableSalary").hide();
+            $("#divDetails").show();
+            printFile = "divDetails";
+            table = "Fixed";
+        }
+        function EditEmployeeSalary(empId, salaryId, amount,remain) {
+            $("#frmAddEmployeeSalary")[0].reset();
+            if (isNaN(salaryId) || amount==0) {
+                toastr.warning("This employee not recieved salary in this month", '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            } else {
+                $("#salary_SalaryId").val(salaryId)
+                $("#salary_PaidAmount").val(parseFloat(amount).toFixed(2));
+                $("#lastRemain").val(parseFloat(remain).toFixed(2));
+                $("#btnSubmitEmployeeSalary").text("Update");
+                $("#addEmployeeSalaryModal").modal("show");
+
+            }
+        }
+        function AddSalary(empId, salary, remain,classId,type) {
+            $("#frmAddEmployeeSalary")[0].reset();
+            $("#salary_EmployeeId").val(empId)
+            $("#salary_ClassId").val(classId)
+            $("#empSalary").val(parseFloat(salary).toFixed(2));
+            $("#lastRemain").val(parseFloat(remain).toFixed(2));
+            $("#btnSubmitEmployeeSalary").text("Pay");
+            if (type == 1) {
+                $("#salaryLabel").text("Per Hour");
+            }
+            if (type == 2) {
+                $("#salaryLabel").text("Percentage");
+            }
+            if (type == 3) {
+                $("#salaryLabel").text("Salary");
+            }
+            $("#addEmployeeSalaryModal").modal("show");
+        }
+        $("#salary_PaidAmount").keyup(function () {
+
+            var total = parseInt($("#lastRemain").val()) - parseInt($("#salary_PaidAmount").val());
+            $("#newRemain").val(total);
+        })
+
+    </script>
+    @* employee Percentage salary script functions *@
+    <script>
+
+        function LoadEmployeeSalaryPercentage() {
+
+            $.ajax({
+                url: "/Employee/LoadEmployeeSalaryPercentage/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+                        var paidDate = new Date(col.paidDate);
+
+                        var currentDate = new Date();
+
+                        var empty = "";
+                        var showBtnPay = "";
+                        var showPayMoney = col.paidAmount;
+                        var showPayDate = "";
+                        //if (paidDate.getFullYear() == currentDate.getFullYear() && paidDate.getMonth() == currentDate.getMonth()) {
+                        //    showBtnPay = "";
+                        //    showPayMoney = col.paidAmount;
+                        //    showPayDate = paidDate.toLocaleDateString();
+
+                        //} else {
+                        //    showBtnPay = "";
+                        //    showPayMoney = "";
+                        //    showPayDate = "";
+                        //}
+                        
+                        var amounts = ((parseInt(col.percentage) * parseInt(col.fees)) / 100) * col.students
+                        var absent = amounts / col.totalClassDays * col.absentCount;
+                        var amount = amounts - absent;
+                        var remain = amount - parseInt(col.totalPaid);
+
+                        var clr = "";
+                        if (remain < 0) {
+                            clr = "#f99ea9";
+
+                        }
+                        if (remain >0) {
+                            clr = "#9ec8ed";
+
+                        }
+
+                        var tpaid = 0;
+                        if (col.totalPaid == null) {
+
+                            tpaid = 0;
+                        } else {
+                            tpaid = col.totalPaid;
+
+                        }
+                        var date = "";
+                        if (col.date == null) {
+
+                            date = "";
+                        } else {
+                            date = col.date;
+
+                        }
+                        var tremain
+                        if (col.totalRemain == null) {
+
+                            tremain = 0;
+                        } else {
+                            tremain = col.totalRemain;
+
+                        }
+
+
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td>' + col.name + '</td>' +
+                            ' <td>' + col.phone + '</td>' +
+                            ' <td>' + col.className + '</td>' +
+                            ' <td>' + col.fees + '</td>' +
+                            ' <td>' + col.students + '</td>' +
+                            ' <td>' + col.percentage + '</td>' +
+                            ' <td>' + amount.toFixed(2) + '</td>' +
+                            ' <td style="background-color:' + clr + '" >' + remain.toFixed(2) + '</td>' +
+                            ' <td>' + col.lastPaid + '</td>' +
+                            ' <td>' + date + '</td>' +
+                            ' <td class="' + showBtnPay + '    @ViewBag.Insert"><button type="button" onclick="AddSalary(' + col.id + ',\'' + col.percentage + '\',\'' + remain + '\',\'' + col.classId + '\',\'' + 2 + '\')" class="btn btn-primary"><i class=""></i>  Pay  </button></td>' +
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditEmployeeSalary(' + col.id + ',\'' + col.salaryId + '\',\'' + col.lastPaid + '\',\'' + remain + '\')" class="btn btn-info"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td ><button type="button" onclick="EmployeeSalaryDetailsP(' + col.id + ',\'' + col.imagePath + '\',\'' + col.name + '\',\'' + col.hireDate + '\',\'' + col.phone + '\',\'' + col.percentage + '\',\'' + tpaid + '\',\'' + col.totalSalary + '\',\'' + col.classId + '\',\'' + col.className + '\',\'' + col.fees + '\',\'' + col.students + '\',\'' + amount + '\',\'' + remain + '\',\'' + col.absentCount + '\')" class="btn btn-success"><i class="fa fa-info"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblEmployeeSalaryPercentage").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblEmployeeSalaryPercentage>tbody").html("").html(tr);
+
+                    $("#tblEmployeeSalaryPercentage").DataTable({
+
+                        stateSave: true,
+
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                    })
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function EmployeeSalaryDetailsP(id, imagePath, name, hireDate, phone, percentage, totalPaid, totalSalary,classId,className,fees,students,totalAmount,remain,absentcount) {
+
+            $.ajax({
+                url: "/Employee/FetchEmployeeClassSalary/?employeeId=" + id + "&classId=" + classId + "",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                success: function (result) {
+                    var amount = "";
+                    var date = "";
+                    $.each(result, function (i,col) {
+                        amount += '<h4>' + col.paidAmount + '</h4>';
+                        date += '<h4>' + col.paidDate + '</h4>';
+                    })
+                    $("#paidAmountP").html("").append(amount);
+                    $("#paidAmountDateP").html("").append(date);
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+
+            })
+
+            $("#employeeId").val(id);
+            $("#employeeImageP").attr("src", imagePath);
+            $("#btnPayments").trigger("click");
+            $("#nameP").text(name);
+            $("#hireDateP").text(hireDate);
+            $("#phoneP").text(phone);
+            $("#salaryP").text(percentage);
+
+            $("#classNameP").text(className);
+            $("#classFeesP").text(fees);
+            $("#totalStudentsP").text(students);
+            $("#absentPercentage").text(absentcount);
+
+            $("#totalRemainP").text(parseFloat(remain).toFixed(2));
+            $("#totalPaidP").text(parseFloat(totalAmount - remain).toFixed(2));
+
+            $("#totalSalaryP").text(parseFloat(totalAmount).toFixed(2));
+            $("#divTableSalaryPercentage").hide();
+            $("#btnr").show();
+            $("#btnBack").show();
+            $("#divInput").hide();
+            $("#divTable").hide();
+            $("#divTableSalary").hide();
+            $("#divDetailsP").show();
+
+            printFile = "divDetailsP";
+            table = "Percentage";
+        }
+
+    </script>
+    @* employee Hourly salary script functions *@
+    <script>
+
+        function LoadEmployeeSalaryHourly() {
+
+            $.ajax({
+                url: "/Employee/LoadEmployeeSalaryHourly/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+
+                        var showBtnPay = "";
+
+                        var amount = parseInt(col.perHour) * parseInt(col.totalHours - col.absentCount);
+                        var remain = amount - parseInt(col.totalPaid);
+                        var clr = "";
+                        if (remain < 0) {
+                            clr = "#f99ea9";
+
+                        }
+                        if (remain > 0) {
+                            clr = "#9ec8ed";
+
+                        }
+
+                        var tpaid = 0;
+                        if (col.totalPaid == null) {
+
+                            tpaid = 0;
+                        } else {
+                            tpaid = col.totalPaid;
+
+                        }
+                        var date = "";
+                        if (col.date == null) {
+
+                            date = "";
+                        } else {
+                            date = col.date;
+
+                        }
+                        var tremain
+                        if (col.totalRemain == null) {
+
+                            tremain = 0;
+                        } else {
+                            tremain = col.totalRemain;
+
+                        }
+
+
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td>' + col.name + '</td>' +
+                            ' <td>' + col.phone + '</td>' +
+                            ' <td>' + col.className + '</td>' +
+                            ' <td>' + col.perHour + '</td>' +
+                            ' <td>' + col.totalHours + '</td>' +
+                            ' <td>' + amount + '</td>' +
+                            ' <td style="background-color:' + clr + '">' + remain + '</td>' +
+                            ' <td>' + col.lastPaid + '</td>' +
+                            ' <td>' + date + '</td>' +
+                            ' <td class="' + showBtnPay + '    @ViewBag.Insert"><button type="button" onclick="AddSalary(' + col.id + ',\'' + col.perHour + '\',\'' + remain + '\',\'' + col.classId + '\',\'' + 1 + '\')" class="btn btn-primary"><i class=""></i>  Pay  </button></td>' +
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditEmployeeSalary(' + col.id + ',\'' + col.salaryId + '\',\'' + col.lastPaid + '\',\'' + remain + '\')" class="btn btn-info"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td ><button type="button" onclick="EmployeeSalaryDetailsH(' + col.id + ',\'' + col.classId + '\',\'' + col.imagePath + '\',\'' + col.name + '\',\'' + col.hireDate + '\',\'' + col.phone + '\',\'' + col.perHour + '\',\'' + col.className + '\',\'' + col.classFees + '\',\'' + col.totalHours + '\',\'' + amount + '\',\'' + remain + '\',\'' + col.absentCount+'\')" class="btn btn-success"><i class="fa fa-info"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblEmployeeSalaryHourly").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblEmployeeSalaryHourly>tbody").html("").html(tr);
+
+                    $("#tblEmployeeSalaryHourly").DataTable({
+
+                        stateSave: true,
+
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                    })
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function EmployeeSalaryDetailsH(id, classId, imagePath, name, hireDate, phone, perHour, className, classFees,totalHours,totalAmount,remain,absentcount) {
+
+            $.ajax({
+                url: "/Employee/FetchEmployeeClassHourly/?employeeId=" + id + "&classId=" + classId + "",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                success: function (result) {
+                    var amount = "";
+                    var date = "";
+                    $.each(result, function (i,col) {
+                        amount += '<h4>' + col.paidAmount + '</h4>';
+                        date += '<h4>' + col.paidDate + '</h4>';
+
+                    })
+                    $("#paidAmountH").html("").append(amount);
+                    $("#paidAmountDateH").html("").append(date);
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+
+            })
+
+            $("#employeeId").val(id);
+            $("#employeeImageH").attr("src", imagePath);
+            $("#btnPayments").trigger("click");
+            $("#nameH").text(name);
+            $("#hireDateH").text(hireDate);
+            $("#phoneH").text(phone);
+            $("#salaryH").text(perHour);
+
+            $("#classNameH").text(className);
+            $("#classFeesH").text(classFees);
+            $("#totalHoursH").text(totalHours);
+            $("#absentHours").text(absentcount);
+
+            $("#totalRemainH").text(remain);
+            $("#totalPaidH").text(totalAmount - remain);
+
+            $("#totalSalaryH").text(totalAmount);
+            $("#divTableSalaryPercentage").hide();
+            $("#divTableSalaryHourly").hide();
+            $("#btnr").show();
+            $("#btnBack").show();
+            $("#divInput").hide();
+            $("#divTable").hide();
+            $("#divTableSalary").hide();
+            $("#divDetailsH").show();
+
+            printFile = "divDetailsH";
+            table = "Hourly";
+        }
+
+    </script>
+    @* Show hide code *@
+    <script>
+
+        $("#btnFixedSalary").click(function () {
+            $("#divTableSalary").show();
+            $("#divTableSalaryHourly").hide();
+            $("#divTableSalaryPercentage").hide();
+            $("#divDetails").hide();
+            $("#divDetailsP").hide();
+            $("#divDetailsH").hide();
+            $("#btnr").hide();
+            $("#btnBack").hide();
+            table = "Fixed";
+        })
+        $("#btnPercentageSalary").click(function () {
+            $("#divTableSalary").hide();
+            $("#divTableSalaryHourly").hide();
+            $("#divTableSalaryPercentage").show();
+            $("#divDetails").hide();
+            $("#divDetailsP").hide();
+            $("#divDetailsH").hide();
+            $("#btnr").hide();
+            $("#btnBack").hide();
+            table = "Percentage";
+        })
+        $("#btnHourlySalary").click(function () {
+            $("#divTableSalary").hide();
+            $("#divTableSalaryPercentage").hide();
+            $("#divTableSalaryHourly").show();
+            $("#divDetails").hide();
+            $("#divDetailsP").hide();
+            $("#divDetailsH").hide();
+            $("#btnr").hide();
+            $("#btnBack").hide();
+            table = "Hourly";
+        })
+        $("#btnBack").click(function () {
+            if (table == "Fixed") {
+                $("#divTableSalary").show();
+                $("#divDetails").hide();
+                $("#divDetailsP").hide();
+                $("#divDetailsH").hide();
+                $("#btnr").hide();
+                $("#btnBack").hide();
+            }
+            if (table == "Percentage") {
+                $("#divTableSalaryPercentage").show();
+                $("#divDetails").hide();
+                $("#divDetailsP").hide();
+                $("#divDetailsH").hide();
+                $("#btnr").hide();
+                $("#btnBack").hide();
+            }
+            if (table == "Hourly") {
+                $("#divTableSalaryHourly").show();
+                $("#divDetails").hide();
+                $("#divDetailsP").hide();
+                $("#divDetailsH").hide();
+                $("#btnr").hide();
+                $("#btnBack").hide();
+            }
+
+        })
+    </script>
+}

@@ -1,0 +1,153 @@
+﻿
+@model ManulReprotViewModel
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#topStudents").addClass("active")</script>
+
+<div class=" row   ">
+    <div class="col-md-12" style="text-align:center">
+        <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+            Top Students
+        </h2>
+        <hr />
+    </div>
+</div>
+
+
+<div class="container-fluid card   @ViewBag.view">
+
+    <form asp-controller="Student" data-ajax="true" data-ajax-method="post" data-ajax-success="LoadStudentsFees(data)" asp-action="FetchTopStudents">
+        <div class="col-md-12 row p-1">
+            <div class="col-md-3 ">
+                <label class="">Class :</label>
+                <select id="attendanceOfAllStudent" asp-for="classId" style="height:45px;" class="form-control " asp-items="@ViewBag.Classes">
+                    <option>Select Class</option>
+                </select>
+            </div>
+            <div class="col-md-9 row">
+                <div class="col-md-4">
+                    <label style=""> From Date :</label>
+                    <input class="form-control" style="height:45px; " asp-for="FromDate">&nbsp;
+                </div>
+
+                <div class="col-md-6 row">
+                    <label>To Date :</label>
+                    <input class="form-control" style="height:45px; " asp-for="ToDate">&nbsp;
+                </div>
+                <div class="col-md-2 "style="margin-top:32px;">                   
+                    <button type="submit" class="btn btn-default  btn-info" id="btnSubmit">Submit</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @*<div class="form-group  col-md-4">
+            <label asp-for="exam.ExamTypeId" class=""></label>
+            <select asp-for="exam.ExamTypeId" style="height:45px;" class="form-control" id="examType" onchange="LoadStudentsFees()" asp-items="@ViewBag.ExamType">
+                <option value="">Select Exam Type</option>
+            </select>
+            <span asp-validation-for="exam.ExamTypeId" class="text-danger"></span>
+        </div>*@
+
+
+    <div class="card col-md-12">
+        <section id="divTableStudents" style="">
+
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead" id="tblStudentFees">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+
+                        <th style="max-width:10px;">#</th>
+                        <th class="col-md-3">Name</th>
+                        <th class="col-md-1">F/Name</th>
+                        <th class="col-md-1">Phone</th>
+                        <th class="col-md-1">Class</th>
+                        <th class="col-md-1">Total Exams</th>
+                        <th class="col-md-1">Total Marks</th>
+                        <th class="col-md-1"> Average</th>
+                        <th class="col-md-3">Photo</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+    </div>
+</div>
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        $(document).ready(function () {
+            ///LoadStudentsFees();
+            $(".d").show();
+        })
+    </script>
+    @* student fees script functions *@
+    <script>
+        var showC = true;
+
+        function LoadStudentsFees(data) {
+
+            var tr = "";
+            console.log(data)
+
+            $.each(data, function (i, col) {
+                var total = 0;
+                if (col.totalMarks <= 0) {
+                    total = 0;
+                } else {
+                    total = col.totalMarks;
+                }
+                var average = total / parseInt(col.totalExams);
+                tr += '<tr class="odd" role="row">' +
+                    '<td>' + (i + 1) + '</td>' +
+                    ' <td>' + col.name + '</td>' +
+                    ' <td>' + col.fName + '</td>' +
+                    ' <td>' + col.phone + '</td>' +
+                    ' <td>' + col.classs + '</td>' +
+                    ' <td>' + col.totalExams + '</td>' +                 
+                    ' <td>' + total + '</td>' +
+                    ' <td>' + average + '</td>' +
+                    ' <td><img src=' + col.photo + ' height="100" width="100"></td>' +
+                    '</tr>';
+            })
+
+            var table = $("#tblStudentFees").dataTable();
+            table.fnDestroy();
+            $("#tblStudentFees>tbody").html("").html(tr);
+
+            $("#tblStudentFees").DataTable({
+                dom: 'Blfrtip', buttons: ['excel', 'print', 'copy'],
+                stateSave: true,
+                "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+            });
+            $(".buttons-print").text("Print")
+            $(".buttons-copy").text("Copy")
+            $(".buttons-excel").text("Excel")
+            $('.buttons-copy, .buttons-print, .buttons-excel').addClass('btn btn-primary ')
+            //$.ajax({
+            //    url: "/Student/FetchTopStudents/?stdClassId=" + $("#attendanceOfAllStudent :selected").val() + "",
+            //    type: "POST",
+            //    contentType: "application/json",
+            //    datatype: "JSON",
+            //    success: function (result) {
+
+
+            //    },
+            //    error: function (err) {
+            //        console.log(err);
+            //    },
+
+            //})
+        }
+
+
+
+    </script>
+}

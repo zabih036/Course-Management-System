@@ -1,0 +1,258 @@
+﻿@model ManulReprotViewModel
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#expenseReport").addClass("active")</script>
+
+<script src="~/js/highcharts.js"></script>
+
+<div class="col-md-12 container-fluid card border-blue">
+    <form asp-controller="ExpenseReport" data-ajax="true" data-ajax-method="post" data-ajax-success="fnManul(data)" asp-action="ManualReprot">
+        <div class="row card-body">
+
+            <div class="col-md-12 row p-0 m-0 ">
+                <button type="button" onclick="fnDaily()" class="btn btn-info box-shadow-1">Today's Expense</button>&nbsp;
+                <button type="button" onclick="fnWeekly()" class="btn btn-success box-shadow-1">Last Month</button>&nbsp;
+                <button type="button" onclick="fnYear()" class="btn btn-info box-shadow-1">Last Year</button>&nbsp;
+                <button id="btnManualReport" type="button" style="height:45px;" class="btn  btn-warning box-shadow-1">Specific Time</button>&nbsp;&nbsp;
+                <button type="button" onclick="print()" class="btn btn-info box-shadow-1">Print <i class="ft-printer"></i></button>&nbsp;
+
+                <h3 style="margin-top:10px; display:none" class="d"> From Date:</h3>
+                <input class="form-control d col-md-2" style="height:45px; display:none " asp-for="FromDate">&nbsp;
+                <h3 class="d" style="margin-top:10px; display:none">To Date :</h3>
+                <input class="form-control d col-md-2" style="height:45px; display:none" asp-for="ToDate">&nbsp;
+                <button type="submit" class="btn btn-default d btn-info" style="display:none">Submit</button>
+
+            </div>
+
+        </div>
+
+    </form>
+</div>
+<br />
+<br />
+<div id="container" class="border-blue" style="min-width: 400px; height: 580px; margin: 0 auto;margin-top:-60px;">
+</div>
+
+@section Scripts {
+    @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+
+        $(document).ready(function () {
+            fnDaily();
+
+        })
+
+        function print() {
+            $("#container").printThis({
+                debug: false,               // show the iframe for debugging
+                importCSS: true,            // import parent page css
+                importStyle: true,         // import style tags
+                //header: null,
+                //footer: null,
+                //  printContainer: true,       // print outer container/$.selector
+                // loadCSS: "",                // path to additional css file - use an array [] for multiple
+               // pageTitle: "title",              // add title to print page
+                // removeInline: false,        // remove inline styles from print elements
+                // removeInlineSelector: "*",  // custom selectors to filter inline styles. removeInline must be true
+                // printDelay: 333,            // variable print delay
+                // header: "<h1 style='align-text: center; margin-bottom: 5px;font-size:30px;'>حزب الله سوپر سټور</h1>" ,              // prefix to html
+                // footer: "<h2 style='align-text: center; margin-top: 5px;'>آدرس: ننګرهار ولایت جواد حسن مارکیټ</h2>",              // postfix to html
+                //base: false,                // preserve the BASE tag or accept a string for the URL
+                //formValues: true,           // preserve input/form values
+                  canvas: true,              // copy canvas content
+                // doctypeString: '...',       // enter a different doctype for older markup
+                //removeScripts: false,       // remove script tags from print content
+                copyTagClasses: true,      // copy classes from the html & body tag
+                //beforePrintEvent: null,     // function for printEvent in iframe
+                //beforePrint: null,          // function called before iframe is filled
+                //afterPrint: null            // function called before iframe is removed
+            });
+        }
+
+        function fnWeekly() {
+            $(".d").hide();
+            var titleMessage = "Last month expenses: ";
+
+            $.ajax({
+                type: "GET",
+                url: "/ExpenseReport/GetWeeklyExpense",
+                contentType: "application/json",
+                dataType: "json",
+                success: function (result) {
+                    var keys = Object.keys(result);
+                    var weeklydata = new Array();
+                    var totalspent = 0.0;
+                    for (var i = 0; i < keys.length; i++) {
+                        var arrL = new Array();
+                        arrL.push(keys[i]);
+                        arrL.push(result[keys[i]]);
+                        totalspent += result[keys[i]];
+                        weeklydata.push(arrL);
+                    }
+                    createCharts(weeklydata, titleMessage, totalspent.toFixed(2));
+                }
+            })
+        }
+
+        function fnDaily() {
+            $(".d").hide();
+            var titleMessage = "Today's expenses";
+
+            $.ajax({
+                type: "GET",
+                url: "/ExpenseReport/GetDailyExpense",
+                contentType: "application/json",
+                dataType: "json",
+                success: function (result) {
+                    var keys = Object.keys(result);
+                    var monthlydata = new Array();
+                    var totalspent = 0.0;
+                    for (var i = 0; i < keys.length; i++) {
+                        var arrL = new Array();
+                        arrL.push(keys[i]);
+                        arrL.push(result[keys[i]]);
+                        totalspent += result[keys[i]];
+                        monthlydata.push(arrL);
+                    }
+                    createCharts(monthlydata, titleMessage, totalspent.toFixed(2));
+                }
+            })
+        }
+
+        function fnYear() {
+            $(".d").hide();
+            var titleMessage = "Last year expenses: ";
+
+            $.ajax({
+                type: "GET",
+                url: "/ExpenseReport/GetYearExpense",
+                contentType: "application/json",
+                dataType: "json",
+                success: function (result) {
+                    var keys = Object.keys(result);
+                    var weeklydata = new Array();
+                    var totalspent = 0.0;
+                    for (var i = 0; i < keys.length; i++) {
+                        var arrL = new Array();
+                        arrL.push(keys[i]);
+                        arrL.push(result[keys[i]]);
+                        totalspent += result[keys[i]];
+                        weeklydata.push(arrL);
+                    }
+                    createCharts(weeklydata, titleMessage, totalspent.toFixed(2));
+                }
+            })
+        }
+
+        function fnManul(result) {
+            var titleMessage = "<p> From " + $("#FromDate").val() + " </p>" + "<p> To " + $("#ToDate").val() + "</p>" + "  Total expenses ";
+            var keys = Object.keys(result);
+
+            var monthlydata = new Array();
+            var totalspent = 0.0;
+            for (var i = 0; i < keys.length; i++) {
+                var arrL = new Array();
+                arrL.push(keys[i]);
+                arrL.push(result[keys[i]]);
+                totalspent += result[keys[i]];
+                monthlydata.push(arrL);
+            }
+            createCharts(monthlydata, titleMessage, totalspent.toFixed(2));
+        }
+
+        function createCharts(sum, titleText, totalspent) {
+            Highcharts.getOptions().plotOptions.pie.colors = ['#2f7ed8', '#1aadce', '#492970', '#f28f43', '#77a1e5', '#c42525', '#a6c96a', '#047CF9', '#910000', '#8bbc21'];
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'column',
+                    polar: true,
+                    options3d: {
+                        enabled: true,
+                        alpha: 45,
+                        beta: 0,
+                        depth: 50,
+                    }
+                },
+                title: {
+
+                    text: titleText + ' ' + totalspent,
+                    style: {
+                        fontSize: '23px',
+
+                    },
+                },
+                xAxis: {
+                    type: 'category',
+
+                    labels: {
+                        rotation: -15,
+
+                        style: {
+                            fontSize: '20px',
+                            fontFamily: 'Verdana, sans-serif'
+                        }
+                    }
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+
+                        text: 'Amount',
+                        style: {
+                            fontSize: '25px'
+
+                        }
+                    },
+                    labels: {
+                        style: {
+                            fontSize: '17px'
+
+                        },
+                        formatter: function () {
+                            return this.value;
+                        },
+
+                    }
+                },
+                legend: {
+                    enabled: false,
+
+
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:17px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{point.key} </td>' +
+                        '<td style="padding:0;font-size:15px;"><b>{point.y:.1f} </b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0,
+                        dataLabels: {
+                            fontSize: '30px',
+                            enabled: true,
+                            format: '{point.y}',
+                            depth: 25
+                        },
+                        showInLegend: true,
+                    },
+                },
+
+                series: [{
+                    name: 'ملاقات',
+                    colorByPoint: true,
+                    type: 'column',
+                    data: sum,
+                }]
+            });
+        }
+        $("#btnManualReport").click(function () {
+            $(".d").show();
+
+        })
+    </script>
+}

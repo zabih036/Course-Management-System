@@ -1,0 +1,108 @@
+﻿
+@model DocumentViewModel
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>$("#saveDockActive").addClass("active")</script>
+
+
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            @if (ViewBag.Alert != "empty")
+            {
+                <div class="alert alert-success alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    @ViewBag.Alert
+                </div>
+            }
+            @if (ViewBag.delete != "empty")
+            {
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    @ViewBag.delete
+                </div>
+            }
+            <div class="modal-header text-center">
+                <h4 class="modal-title " id="myModalLabel17" style="color:white">  د اسنادو ذخیره کول</h4>
+            </div>
+            <div class="modal-body col-md-12">
+
+                <form asp-controller="Account" asp-action="SaveDocumentss" enctype="multipart/form-data" method="post">
+
+                    <div class="row col-md-10 offset-md-1 ">
+
+                        <input hidden asp-for="DocumentID" value="0" />
+                        <div class="form-group col-md-12">
+                            <label asp-for="DocumentDetails" class=""></label>
+                            <input asp-for="DocumentDetails" class="form-control" />
+                            <span asp-validation-for="DocumentDetails" class="text-danger"></span>
+                        </div>
+
+
+                        <div class=" form-group col-md-12">
+                            <label asp-for="DocumentPicture" class=""></label>
+                            <input asp-for="DocumentPicture" type="file" class="form-control" name="img" accept="image/jpeg, image/jpg,image/png" />
+                            <span asp-validation-for="DocumentPicture" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group col-md-12">
+
+                            <button type="reset" id="btncategoryresetDocument" class="btn btn-warning btn-icon-md">پاکول</button>
+                            <button type="submit" class="btn btn-primary btn-icon-md">ذخیره</button>
+
+                        </div>
+                    </div>
+                </form>
+                <div class="card">
+                    <div class="card-header ">
+                        <h4 class="card-title "><strong>د موجوده اسنادو لیست</strong></h4>
+                        <hr />
+                        <a class="heading-elements-toggle">
+                            <i class="fa fa-ellipsis-v font-medium-3"></i>
+                        </a>
+                        <div class="heading-elements">
+                            <ul class="list-inline mb-0">
+                                <li>@*<a data-action="collapse"><i class="ft-minus"></i></a>*@</li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <table class="table table-responsive-md table-striped table-condensed  table-bordered dataTables_scrollHead" id="DataTables_Table_1">
+                        <thead class="scrollable-container ps--scrolling-x ">
+                            <tr role="row">
+
+
+                                <th class="col-md-1">د اسنادو تفصیل</th>
+                                <th class="col-md-1"> تصویر</th>
+                                <th class="col-md-1 ">  حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Documents)
+                            {
+                                <tr role="row">
+
+
+                                    <th class="col-md-1">@item.DocumentDetails</th>
+                                    <th class="col-md-1"> <img src="@item.DocumentPicture" style="height:40px;width:40px;" /></th>
+                                    <th class="col-md-1"> <a href="/Account/DeleteDocument/?id=@item.DocumentId" class="btn btn-danger"><i class="fa fa-trash"></i></a></th>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    @section Scripts {
+        @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
+        @await Html.PartialAsync("_ValidationScriptsPartial")
+    }

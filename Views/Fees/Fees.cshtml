@@ -1,0 +1,443 @@
+﻿
+@model AllViewModel
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#studentFees").addClass("active")</script>
+
+<div class=" row   ">
+    <div class="col-md-12" style="text-align:center">
+        <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+            Student Fees Form
+        </h2>
+        <hr />
+    </div>
+</div>
+
+
+<div class="container-fluid card pt-2   @ViewBag.view">
+
+    <div class="card col-md-12">
+        <section id="divTableStudents" style="">
+
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead" id="tblStudentFees">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+
+                        <th style="max-width:10px;">#</th>
+                        <th class="col-md-3">Photo</th>
+                        <th class="col-md-3">Name</th>
+                        <th class="col-md-1"> F/Name</th>
+                        <th class="col-md-1"> Phone</th>
+                        <th class="col-md-1"> Class</th>
+                        <th class="col-md-1">Class Fees</th>
+                        <th class="col-md-1">Paid</th>
+                        <th class=""> Date</th>
+                        <th class="col-md-1">  Remain</th>
+                        <th class="col-md-1">  Absent Days</th>
+                        <th>  Description</th>
+                        <th>  Status</th>
+                        <th class="@ViewBag.Insert"> Payment</th>
+                        @*<th class=" @ViewBag.Edit">  Edit</th>*@
+
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+    </div>
+</div>
+@* Add salary modal *@
+
+<div class="modal fade text-left" id="addStudentFeesModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel17" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog " role="document">
+        <form data-ajax="true" asp-controller="Fees" asp-action="AddStudentFees" data-ajax-success="funSuccessStudentFees(data)" data-ajax-method="post" id="frmAddStudentFees">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel17">Student Fees</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+
+                    @Html.AntiForgeryToken()
+
+
+
+                    <div class="row text-center container">
+                        <dv class="col-md-10 offset-1">
+                            <input hidden asp-for="fees.OldPaid" value="0" />
+                            <input hidden asp-for="fees.FeesId" value="0" />
+                            <div class="form-group">
+                                <label class="">Class Fees</label>
+                                <input type="number" dir="ltr" id="classFees" disabled class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="">Old Remain</label>
+                                <input type="number" disabled dir="ltr" id="OldRemain" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="fees.PaidAmount" class=""></label>
+                                <input asp-for="fees.PaidAmount" dir="ltr" id="inputPayment" class="form-control" />
+                                <span asp-validation-for="fees.PaidAmount" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="">Remain</label>
+                                <input type="number" dir="ltr" disabled id="newRemain" class="form-control" />
+                                <span class="text-danger"></span>
+                            </div>
+
+                        </dv>
+
+                    </div>
+
+
+
+                </div>
+                <div class="modal-footer   @ViewBag.Insert">
+                    <button type="button" id="btnCloseSalaryPayment" class="btn grey btn-outline-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" id="btnSubmitStudentSalary" class="btn btn-primary btn-icon-md">Pay</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+
+<form data-ajax="true" asp-controller="Fees" asp-action="UnblockAttendance" data-ajax-success="funSuccessStudentAttendance(data)" data-ajax-method="post" id="">
+    <input hidden name="classId" id="clasId" value="0" />
+    <input hidden name="studentId" id="stduntId" value="0" />
+    <button type="submit" id="btnSubmitAttendance"class="d-none">Change</button>
+</form>
+
+
+<form data-ajax="true" asp-action="UnLockStudent" data-ajax-method="post" data-ajax-success="fnSuccessUnlock()" asp-controller="Fees">
+    <input hidden id="emailToLock" asp-for="register.email" />
+    <input hidden id="tf" asp-for="register.trueOrfalse" />
+    <button type="submit" class="d-none" id="btnLock"></button>
+</form>
+
+@section Scripts {
+    @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        $(document).ready(function () {
+
+            LoadStudentsFees();
+            $("#divAlert").delay(6000).fadeOut();
+
+            $("#frmEmployee")[0].reset();
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#btnr").click(function () {
+
+                $("#divDetails").printThis({
+                    debug: false,               // show the iframe for debugging
+                    //importCSS: true,            // import parent page css
+                    importStyle: true,         // import style tags
+                    printContainer: true,       // print outer container/$.selector
+                    loadCSS: "",                // path to additional css file - use an array [] for multiple
+                    pageTitle: "",              // add title to print page
+                    removeInline: false,        // remove inline styles from print elements
+                    removeInlineSelector: "*",  // custom selectors to filter inline styles. removeInline must be true
+                    // printDelay: 333,            // variable print delay
+                    // header: "<h1 style='text-content: center; margin-bottom: 5px;'>افغان فارما شرکت کارمند معاش معلومات!</h1>" ,              // prefix to html
+                    // footer: "<h2 style='justify-content: center; margin-top: 5px;'>آدرس کندهار ولایت جواد حسن مارکیټ!</h2>",              // postfix to html
+                    base: false,                // preserve the BASE tag or accept a string for the URL
+                    formValues: true,           // preserve input/form values
+                    canvas: false,              // copy canvas content
+                    doctypeString: '...',       // enter a different doctype for older markup
+                    removeScripts: false,       // remove script tags from print content
+                    copyTagClasses: true,      // copy classes from the html & body tag
+                    beforePrintEvent: null,     // function for printEvent in iframe
+                    beforePrint: null,          // function called before iframe is filled
+                    afterPrint: null            // function called before iframe is removed
+                });
+
+            })
+
+        })
+    </script>
+    @* student fees script functions *@
+    <script>
+        var showC = true;
+
+        function LoadStudentsFees() {
+
+            $.ajax({
+                url: "/Fees/LoadAllStudentsFees/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+
+
+                    var tr = "";
+                    console.log(result)
+
+                    $.each(result, function (i, col) {
+
+                        if (col.emailConfirmed == "true") {
+                            cls = "btn-primary";
+                            spn = "fa fa-unlock";
+
+                        } else {
+
+                            cls = "btn-danger";
+                            spn = "fa fa-lock";
+                        }
+
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td><img src=' + col.photo + ' height="100" width="100"></td>' +
+                            ' <td>' + col.name + '</td>' +
+                            ' <td>' + col.fName + '</td>' +
+                            ' <td>' + col.phone + '</td>' +
+                            ' <td>' + col.classes + '</td>' +
+                            ' <td>' + col.classFees + '</td>' +
+                            ' <td>' + col.paidAmount + '</td>' +
+                            ' <td>' + col.date + '</td>' +
+                            ' <td>' + col.remain + '</td>' +
+                            ' <td title="Click to remove one absent day" style="cursor:pointer" onclick="fnAddDaysToAttendance(\'' + col.classId + '\',\'' + col.studentId + '\')">' + col.absent + '</td>' +
+                            ' <td>' + col.desctription + '</td>' +
+                            '<td><button onclick="fnToggleBtnLock(' + i + ',\'' + col.stdclassid + '\')" id=' + i + ' class="btn btn-float btn-round btn-float-md   ' + cls + '"><i id="span' + i + '" class="' + spn + '" ></i></button></td>' +
+                            ' <td class="@ViewBag.Insert"><button type="button" onclick="AddFees(' + col.feesId + ',\'' + col.classFees + '\',\'' + col.remain + '\',\'' + col.paidAmount + '\')" class="btn btn-primary"><i class=""></i> Pay </button></td>' +
+                             '</tr>';
+
+
+                    })
+                    var table = $("#tblStudentFees").dataTable();
+                    table.fnDestroy();
+                    $("#tblStudentFees>tbody").html("").html(tr);
+
+                        $("#tblStudentFees").DataTable({
+                            dom: 'Blfrtip', buttons: ['excel', 'print', 'copy'],
+                            stateSave: true,
+                            "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                        });
+                    $(".buttons-print").text("Print")
+                    $(".buttons-copy").text("Copy")
+                    $(".buttons-excel").text("Excel")
+                    $('.buttons-copy, .buttons-print, .buttons-excel').addClass('btn btn-primary ')
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+
+            })
+        }
+        function funSuccessStudentAttendance() {
+            LoadStudentsFees();
+            toastr.success("One Absent day removed from student attendance. ", '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+
+        }
+        function fnAddDaysToAttendance(classid, studentid) {
+           
+            $("#clasId").val(classid);
+            $("#stduntId").val(studentid);
+            $("#btnSubmitAttendance").trigger("click");
+        }
+        function fnToggleBtnLock(i, email) {
+                if ($("#" + i).hasClass("btn-danger")) {
+                    $("#tf").val("unlock");
+                    $("#emailToLock").val(email);
+                    $("#btnLock").trigger("click");
+                    $("#" + i).removeClass("btn-danger").addClass("btn-primary");
+                    $("#span" + i).removeClass("fa fa-lock").addClass("fa fa-unlock");
+
+                } else {
+                    $("#tf").val("lock");
+                    $("#emailToLock").val(email);
+                    $("#btnLock").trigger("click");
+                    $("#" + i).removeClass("btn-primary").addClass("btn-danger");
+                    $("#span" + i).removeClass("fa fa-unlock").addClass("fa fa-lock");
+
+                }
+            }
+        function AddFees(classId,classFees, remain,paidAmount) {
+        $("#fees_FeesId").val(classId)
+        $("#classFees").val(classFees)
+        $("#OldRemain").val(remain)
+        $("#fees_OldPaid").val(paidAmount)
+        $("#addStudentFeesModal").modal("show");
+    }
+        function funSuccessStudentFees(data) {
+        $("#btnCloseSalaryPayment").trigger("click");
+        $("#frmAddStudentFees")[0].reset();
+        LoadStudentsFees();
+        toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+    }
+        function funSuccessEmployeeSalary(data) {
+            LoadEmployeeSalary();
+            $("#btnResetSalary").trigger("click");
+            $("#addEmployeeSalaryModal").modal("hide");
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+            $("#btnSubmitEmployeeSalary").text("ذخیره ");
+        }
+        function EmployeeAllPayments(data) {
+            console.log(date)
+            var divPaid = "";
+            var divDate = "";
+            var amount = "";
+            var date = "";
+            if (data == "") {
+                divDate = 0;
+                divPaid = 0;
+            }
+            $.each(data, function (i, col) {
+                amount = col.paidAmount;
+                date = col.paidDate;
+
+                divPaid += '<h3>' + amount + '</h3>';
+                divDate += '<h3>' + date + '</h3>';
+            })
+            $("#divPaid").html(divPaid);
+            $("#divDate").html(divDate);
+        }
+        function EmployeeSalaryDetails(id, imagePath, name, hireDate, email, phone, province, salary, duration, totalPaid, totalSalary, totalRemain) {
+
+            $("#employeeId").val(id);
+            $("#employeeImage").attr("src", imagePath);
+            $("#btnPayments").trigger("click");
+            $("#name").text(name);
+            $("#hireDate").text(hireDate);
+            $("#email").text(email);
+            $("#phone").text(phone);
+            $("#address").text(province);
+            $("#salary").text(salary);
+            $("#duration").text(duration);
+            if (totalPaid != null) {
+                $("#totalPaid").text(totalPaid);
+            } else {
+                $("#totalPaid").text(0);
+            }
+            if (totalRemain != null) {
+                $("#totalRemain").text(totalRemain);
+
+            } else {
+                $("#totalRemain").text(0);
+            }
+            $("#totalSalary").text(totalSalary);
+            $("#btnr").show();
+            $("#divInput").hide();
+            $("#divTable").hide();
+            $("#divTableSalary").hide();
+            $("#divDetails").show();
+        }
+        function EditEmployeeSalary(empId, salaryId, amount) {
+            if (isNaN(salaryId)) {
+                toastr.warning("نوموړی کارمند په دې میاشت کې پیسې نه دې اخیستې", '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+            } else {
+                $("#salary_SalaryId").val(salaryId)
+                $("#salary_PaidAmount").val(amount);
+                //$("#lastRemain").val(remain);
+                $("#btnSubmitEmployeeSalary").text("تغیرول");
+                $("#addEmployeeSalaryModal").modal("show");
+
+            }
+
+
+
+        }
+        function fnSuccessUnlock() {
+            LoadStudentsFees();
+        }
+    $("#inputPayment").keyup(function () {
+
+        var total = parseInt($("#OldRemain").val()) - parseInt($("#inputPayment").val());
+        $("#newRemain").val(total);
+        })
+    </script>
+
+    @* show and hide tables code *@
+    <script>
+        $("#browseCancel").click(function () {
+
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#browseInput").val("");
+            $("#employee_defalut").val("/images/StaticImages/browse.png");
+
+
+        })
+        $("#btnReset").click(function () {
+
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#browseInput").val("");
+            $("#btnSubmitEmployee").text("Register")
+            $("#frmEmployee")[0].reset();
+
+
+        })
+        $("#btnEmployeeSalaryShow").click(function () {
+            $("#divInput").hide();
+            $("#divTable").hide();
+            $("#divTableSalary").show(300);
+            $("#divDetails").hide();
+            $("#btnr").hide();
+            LoadEmployeeSalary();
+
+        })
+        $("#btnCloseSalaryPayment").click(function () {
+            $("#btnResetSalary").trigger("click");
+
+        })
+        $("#btnList").click(function () {
+            if (list) {
+
+                $("#divInput").animate({
+                    left: '250px',
+                    opacity: '0.9',
+
+                }).hide(400);
+
+
+                $("#divTable").animate({
+
+                }).show(400);
+                $("#divTable").removeClass("d-none")
+
+                $("#btnList").text("Employee Registration")
+                list = false;
+
+
+                loadEmployee();
+
+                $("#divTableSalary").hide();
+                $("#divDetails").hide();
+                $("#btnr").hide();
+
+            } else {
+                $("#divInput").animate({
+                    left: '250px',
+                    opacity: '0.9',
+
+                }).show(400);
+
+
+                $("#divTable").animate({
+
+                }).hide(400);
+
+                $("#btnList").text("Employee list")
+                list = true;
+                $("#divTableSalary").hide();
+                $("#divDetails").hide();
+                $("#btnr").hide();
+            }
+
+        });
+    </script>
+
+}

@@ -1,0 +1,252 @@
+﻿
+@model AllViewModel
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#attendanceInfoAllStudents").addClass("active")</script>
+
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorize
+
+@if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+
+    @await Html.PartialAsync("AccessDeniedPartial")
+
+
+    ViewBag.view = "d-none";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+
+@if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    //  ViewBag.Delete = "";
+}
+
+<div id="div1" class="container-fluid card  @ViewBag.view">
+
+    <div id="div2" class="card col-md-12">
+        <div class="card-header ">
+
+            <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+                All Students Attendance Table
+            </h2>
+            <hr />
+        </div>
+        <div class="card-body">
+            <div id="divAllAttendance">
+                <div class="col-md-12 row">
+                    <div class="form-group col-md-4">
+                        <label asp-for="exam.ClassId" class=""></label>
+                        <select id="attendanceOfAllStudent" asp-for="exam.ClassId" style="height:45px;" onchange="loadAllAttendance()" class="form-control " asp-items="@ViewBag.Classes">
+                            <option>Select Class</option>
+                        </select>
+                        <span asp-validation-for="exam.ExamTypeId" class="text-danger"></span>
+                    </div>
+                </div>
+                <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead " id="tblAllAttendance">
+                    <thead class="scrollable-container ps--scrolling-x">
+                        <tr role="row" class="font-white">
+                            <th style="max-width:20px;">#</th>
+                            <th class="">Image</th>
+                            <th class="">Student</th>
+                            <th class="">F/Name</th>
+                            <th class="">Total Credit Hours</th>
+                            <th class="">Attended</th>
+                            <th class="">Absent</th>
+                            <th class="">Leave</th>
+                            <th class="">Attended %</th>
+                            <th class="">Absent %</th>
+                            <th class="">Leave %</th>
+                            <th class="">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <br /><br />
+            <div class="d-none" id="div3">
+                <div class="text-center alert alert-info">
+                    <p style="font-size:xx-large" id="lblStudent" class="font-italic text-capitalize"></p>
+                </div>
+                <div class="col-md-6 offset-3">
+                    <table class="table table-responsive table-striped table-bordered" id="tblSingleAttendance">
+                        <thead class="">
+                            <tr>
+                                <th>#</th>
+                                <th class="col-md-5">Attendance Date</th>
+                                <th class="col-md-5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<form data-ajax="true" asp-action="FetchStudents" data-ajax-method="post" asp-controller="Student" data-ajax-success="deleted(data)">
+    <input hidden id="deleteId" asp-for="examType.ExamTypeId" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+<input type="hidden" name="name" id="rowValue" value="" />
+
+@* ////////////////////////  MY needed view  /////////// *@
+<form data-ajax="true" asp-action="AssingAttendance" data-ajax-method="post" asp-controller="Attendance" data-ajax-success="AttendanceSuccess(data)">
+    <div class="d-none">
+        <input type="text" name="attStudentID" id="attStudentID" />
+        <input type="text" name="attClassID" id="attClassID" />
+        <input type="text" name="attState" id="attState" />
+        <input type="text" name="saveOrEdit" value="1" id="saveOrEdit" />
+        <button type="submit" class="d-none" id="btnAssignAttendance"></button>
+    </div>
+
+</form>
+@* /////////////////////////////  Fetching Selected student attendance in detail ////// *@
+<form data-ajax="true" asp-action="attendanceOfSelectedStudent" data-ajax-method="post" asp-controller="Attendance" data-ajax-success="fetchDetiledAttendance(data)">
+    <input hidden id="studentIdForAttendance" name="studentIdForAttendance" />
+    <input hidden id="classIdForAttendance" name="classIdForAttendance" />
+    <button type="submit" class="d-none" id="btnFetchDetiledAttendance"></button>
+</form>
+<input hidden id="stdId" />
+<input hidden id="inputAttendance" value="Attendance" />
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        $(document).ready(function () {
+            //   $("#frmEmployee")[0].reset();
+            //$("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            //$("#divSuccess").delay(6000).fadeOut();
+        })
+    </script>
+    @* ////////////////////  My script //////// *@
+    <script>
+    function loadAllAttendance() {
+          $.ajax({
+              url: "/Attendance/attendanceOfAllStudent/?stdClassId=" + $("#attendanceOfAllStudent :selected").val() + "",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+            success: function (result) {
+                var tr = "";
+                var attendedPercentage = 0.0;
+                var absentPercentage = 0.0;
+                var leavePercentage = 0.0;
+                $.each(result, function (i, col) {
+                    attendedPercentage = (100 * col.totalAttended) / col.totalCredit;
+                    leavePercentage = (100 * col.totalLeave) / col.totalCredit;
+                    absentPercentage = (100 * col.totalAbsent) / col.totalCredit;
+                            tr += '<tr  role="row">' +
+                                    '<td>' + (i + 1) + '</td>' +
+                                    ' <td><img src=' + col.image + ' height="100" width="100"></td>' +
+                                    '<td>' + col.name + '</td>' +
+                                    '<td>' + col.fName + '</td>' +
+                                    '<td>' + col.totalCredit + '</td>' +
+                                    '<td>' + col.totalAttended + '</td>' +
+                                    '<td>' + col.totalLeave + '</td>' +
+                                    '<td>' + col.totalAbsent + '</td>' +
+                                    '<td>' + attendedPercentage.toFixed(2) + '%</td>' +
+                                    '<td>' + absentPercentage.toFixed(2) + '%</td>' +
+                                '<td> ' + leavePercentage.toFixed(2) + '% </td>' +
+                                '<td> <button class="btn btn-info" onClick="fetchSelectedStudentAttendance(' + col.studentId + ',\'' + col.name + '\',\'' + col.className + '\',\'' + col.classId + '\')"><i class="fa fa-info"></i></button> </td>' +
+                                '</tr>';
+                })
+                     var table = $("#tblAllAttendance").dataTable();
+                     table.fnDestroy();
+
+                     $("#tblAllAttendance>tbody").html("").html(tr);
+
+                $("#tblAllAttendance").DataTable({
+                    dom: 'Blfrtip', buttons: ['excel', 'print', 'copy'],
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                });
+                $(".buttons-print").text("Print")
+                $(".buttons-copy").text("Copy")
+                $(".buttons-excel").text("Excel")
+                $('.buttons-copy, .buttons-print, .buttons-excel').addClass('btn btn-primary ')
+
+
+            },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+        })
+    }
+    function fetchSelectedStudentAttendance(studentId, name, className, classId) {
+
+        $("#studentIdForAttendance").val(studentId);
+        $("#classIdForAttendance").val(classId);
+        $("#btnFetchDetiledAttendance").trigger("click");
+        $("#lblStudent").text(name + " Attendance Detail");
+       
+      }
+
+        function fetchDetiledAttendance(data) {
+            $("#div3").removeClass("d-none");
+              var row = "";
+         //   console.log(data);
+           $.each(data, function (i, col) {
+               row += '<tr  role="row">' +
+                         '<td class="">' + (i + 1) + '</td>' +
+                         '<td class="col-md-5">' + col.date + '</td>' +
+                         '<td class="col-md-5">' + col.status + '</td>' +
+                       '</tr>';
+           })
+           var table = $("#tblSingleAttendance").dataTable();
+            table.fnDestroy();
+
+            $("#tblSingleAttendance>tbody").html("").html(row);
+
+           $("#tblSingleAttendance").DataTable({
+                     "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                     stateSave: true
+           });
+       }
+    </script>
+
+}

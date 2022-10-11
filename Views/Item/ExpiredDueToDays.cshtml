@@ -1,0 +1,177 @@
+﻿@model ExpiredItemsDueToDaysViewModel
+@{
+    ViewData["Title"] = "ExpiredDueToDays";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#expiredDueDays").addClass("active")</script>
+
+
+<div class="col-md-12 " id="purchaseList">
+    <section>
+        <div class="row">
+            <div class="card">
+                <div class="card-header " style="background-color:deepskyblue">
+                    <h1 class="card-title "><strong id="cardheader"> په راتلونکي  @ViewBag.days  ورځو کې د تاریخ تېرېدونکو اجناسو لېست </strong></h1>
+                    <hr />
+                    <a class="heading-elements-toggle">
+                        <i class="fa fa-ellipsis-v font-medium-3"></i>
+                    </a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content  collapse show">
+                    <div class="card-body">
+                        <div class="col-md-8">
+
+                            <form data-ajax="true" data-ajax-url="/Item/ExpiredDueToDays" data-ajax-success="frmSuccess(data)" data-ajax-method="post" id="frmCustomerReg">
+                                <div class="col-md-12 row">
+                                    <div class="form-group col-md-6">
+                                        <label asp-for="Days" class=""></label>
+                                        <input asp-for="Days" placeholder="د ورځو تعداد ورسوئ !!" value="@ViewBag.days" class="form-control" />
+                                        <span asp-validation-for="Days" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-2" style="margin-top:4%">
+                                        <button type="submit" id="btnsubmit" class="btn btn-primary"><i class="ft-edit" id="btnsubmiticon"></i>&nbsp;<lable id="btnsubmitText">تغیرول</lable></button>
+                                    </div>
+                                </div>
+
+                            </form>
+
+                        </div>
+                        <table class="table  table-responsive table-bordered dataex-fixh-basic dataTable" id="tblNearToExpire">
+                            <thead>
+                                <tr role="row">
+                                    <th>شماره</th>
+                                    <th>جنس</th>
+                                    <th>لاتین نوم</th>
+                                    <th>واحد</th>
+                                    <th>کمپنی</th>
+                                    <th>هېواد</th>
+                                    <th>تعداد په کارتن</th>
+                                    <th>د کارتن ظرفیت</th>
+                                    <th>پیرلو بیه</th>
+                                    <th>پلور بیه</th>
+                                    <th>پیسو ډول</th>
+                                    <th>جوړولو نیټه</th>
+                                    <th>ختم نیټه</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblBody">
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+    $(document).ready(function () {
+        FetchExpiredItemDueToDays();
+    })
+
+    var show = true;
+    function FetchExpiredItemDueToDays() {
+        $.ajax({
+            url: '/Item/FetchExpiredItemDueToDays/',
+            type: 'POST',
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (result) {
+                var tr = "";
+                if (result == -1) {
+                    $("#btnsubmitText").text("ذخیره");
+                    toastr.option
+                    toastr.success("د دې لپاره چې د تاریخ تېرو اجناسو نیټه مخکې له نېټې وګورئ، لومړئ د ورځو تعداد ورسوئ", '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+                }
+                else {
+                    $.each(result, function (i, col) {
+                        tr += "  <tr> ";
+                        tr += "      <td>" + (i + 1) + "</td> ";
+                        tr += "      <td>" + col.itemname + "</td> ";
+                        tr += "      <td>" + col.latinname + "</td> ";
+                        tr += "      <td>" + col.unit + "</td> ";
+                        tr += "      <td>" + col.company + "</td> ";
+                        tr += "      <td>" + col.country + "</td> ";
+                        tr += "      <td>" + col.quantity + "</td> ";
+                        tr += "      <td>" + col.amountinpackage + "</td> ";
+                        tr += "      <td>" + col.purchaseprice + "</td> ";
+                        tr += "      <td> " + col.saleprice + "</td> ";
+                        tr += "      <td>" + col.currency + "</td> ";
+                        tr += "      <td>" + col.manufacturedate + "</td> ";
+                        tr += "      <td>" + col.expiredate + "</td> ";
+                        tr += "  </tr>";
+                    });
+                    $("#tblNearToExpire>tbody").html("").html(tr);
+                }
+
+                if (show) {
+                    show = false;
+                    $("#tblNearToExpire").DataTable({
+                        stateSave: true,
+                        // responsive = true,
+                        select: false,
+                        ordering: true,
+                        "scrollY": "315px",
+                        "scrollX": "315px",
+                        "lengthChange": false,
+                        "lengthMenu": [[5, 10, 20, -1], [10, 25, 50, "All"]],
+                        "pageLength": 5,
+                        "language": {
+                            "emptyTable": "په جدول کې معلومات شتون نه لري",
+                            "info": "د <b>( _START_  )</b> تر <b>( _END_  )</b> د <b>( _TOTAL_ )</b> ریکاروډونو څخه."
+                            ,
+                            "pageLength": 5,
+                            "lengthChange": false,
+
+                            "infoEmpty": "",
+                            "infoFiltered": "( پیدا شوي  <b> ( _MAX_ ) </b>  ټول ریکارډونه)",
+                            "infoPostFix": "",
+                            "lengthMenu": [[5, 10, 20, -1], [10, 25, 50, "All"]],
+                            "search": "پلټنه <span class='glyphicon glyphicon-search'></span>",
+                            "searchPlaceholder": "پلټنه",
+                            "zeroRecords": "پدی نوم هیڅ ریکارډ پیدا نشو ",
+                            "paginate": {
+                                "first": "لومړۍ پاڼه",
+                                "previous": "مخکې",
+                                "next": "وروسته",
+                                "last": "پای"
+                            },
+                        },
+                    });
+                }
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        })
+    }
+    function frmSuccess(data) {
+        if (data == "د ورځو تعداد سیستم کې ذخیره شول") {
+            toastr.option
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+
+        }
+        else {
+            toastr.option
+            toastr.success("د ورځو تعداد تغیر شول !!!", '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+            $("#cardheader").text("په راتلونکي " + data + " ورځو کې د تاریخ تېرېدونکو اجناسو لېست");
+        }
+        FetchExpiredItemDueToDays();
+    }
+</script>

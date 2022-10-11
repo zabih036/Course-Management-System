@@ -1,0 +1,161 @@
+﻿
+@{
+    ViewData["Title"] = "ruturnedSales";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#returnsaleActive").addClass("active")</script>
+
+<div class="col-md-12" id="purchaseList">
+    <section>
+        <div class="row">
+            <div class="card">
+                <div class="card-header ">
+                    <h1 class="card-title "><strong>د پلورل شویو اجناسو د واپسیو لېست</strong></h1>
+                    <hr />
+                    <a class="heading-elements-toggle">
+                        <i class="fa fa-ellipsis-v font-medium-3"></i>
+                    </a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                            @*
+                                <li><a data-action="close"><i class="ft-x"></i></a></li>*@
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content  collapse show">
+                    <div class="card-body">
+                        <table class="table  table-responsive table-bordered dataex-fixh-basic dataTable" id="tblList">
+                            <thead>
+                                <tr role="row">
+                                    <th>بیل نمبر</th>
+                                    <th>مشتري</th>
+                                    <th>موقت مشتري</th>
+                                    <th>جنس</th>
+                                    <th>کمپنی</th>
+                                    <th>تعداد</th>
+                                    <th>بڼه</th>
+                                    <th>پلورلو بیه</th>
+                                    <th>تخفیف</th>
+                                    @*<1">پلور بیه</th>*@
+                                    <th>مجموعه</th>
+                                    <th>پیسو ډول</th>
+                                    @*<1"  >جوړولو نیټه</th>*@
+                                    <th>ختم نیټه</th>
+                                    <th>واپسي نیټه</th>
+
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+    $(document).ready(function () {
+        fetchReturnedSales();
+    })
+    function fetchReturnedSales() {
+
+        $.ajax({
+            url: '/Sale/fetchReturnedSales/',
+            type: 'POST',
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (result) {
+                var tr = "";
+                var netTotal = 0;
+                $.each(result, function (i, col) {
+
+                    var tempc = "";
+                    if (col.tmpCusName == null) {
+                        tempc = "";
+
+                    } else {
+                        tempc = col.tmpCusName;
+
+                    }
+                    netTotal = (col.saleprice * (col.quantity / col.amountinpackage)) - (((col.saleprice * (col.quantity / col.amountinpackage)) * col.discount) / 100)
+                    tr += "  <tr> ";
+                    tr += "      <td>" + col.billno + "</td> ";
+                    tr += "      <td>" + col.dealer + "</td> ";
+                    tr += "      <td>" + tempc + "</td> ";
+                    tr += "      <td>" + col.item + "</td> ";
+                    tr += "      <td>" + col.company + "</td> ";
+                    tr += "      <td>" + (col.quantity / col.amountinpackage) + "</td> ";
+                    tr += "      <td>" + col.saletype + "</td> ";
+                    //tr += "      <td>" + col.purchaseprice + "</td> ";
+                    tr += "      <td>" + col.saleprice + "</td> ";
+                    tr += "      <td>" + col.discount + "</td> ";
+                    tr += "      <td> " + netTotal + "</td> ";
+                    tr += "      <td>" + col.currency + "</td> ";
+                    tr += "      <td>" + col.expiredate + "</td> ";
+                    tr += "      <td>" + col.returndate + "</td> ";
+
+                    tr += "  </tr>";
+                });
+                $("#tblList>tbody").html("").html(tr);
+                if (show) {
+                    show = false;
+                    $("#tblList").DataTable({
+                        stateSave: true,
+                        // responsive = true,
+                        select: false,
+                        ordering: true,
+                        "scrollY": "315px",
+                        "scrollX": "315px",
+                        "lengthChange": false,
+                        "lengthMenu": [[5, 10, 20, -1], [10, 25, 50, "All"]],
+                        "pageLength": 5,
+                        "language": {
+                            "emptyTable": "په جدول کې معلومات شتون نه لري",
+                            "info": "د <b>( _START_  )</b> تر <b>( _END_  )</b> د <b>( _TOTAL_ )</b> ریکاروډونو څخه."
+                            ,
+                            "pageLength": 5,
+                            "lengthChange": false,
+
+                            "infoEmpty": "",
+                            "infoFiltered": "( پیدا شوي  <b> ( _MAX_ ) </b>  ټول ریکارډونه)",
+                            "infoPostFix": "",
+                            "lengthMenu": [[5, 10, 20, -1], [10, 25, 50, "All"]],
+                            "search": "پلټنه <span class='glyphicon glyphicon-search'></span>",
+                            "searchPlaceholder": "پلټنه",
+                            "zeroRecords": "پدی نوم هیڅ ریکارډ پیدا نشو ",
+                            "paginate": {
+                                "first": "لومړۍ پاڼه",
+                                "previous": "مخکې",
+                                "next": "وروسته",
+                                "last": "پای"
+                            },
+                        },
+                    });
+                }
+
+
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        })
+    }
+
+</script>
+
+

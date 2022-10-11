@@ -1,0 +1,351 @@
+﻿
+@{
+    ViewData["Title"] = "Management";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+
+@model AllViewModel
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>$("#stockActive").addClass("active")</script>
+
+    @using Microsoft.AspNetCore.Authorization
+    @inject IAuthorizationService authorize
+
+    @if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+    {
+
+        @await Html.PartialAsync("AccessDeniedPartial")
+
+
+        ViewBag.View = "d-none";
+        ViewBag.Insert = "d-none";
+        ViewBag.Delete = "d-none";
+        ViewBag.Edit = "d-none";
+    }
+
+
+    @if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+    {
+        ViewBag.View = "";
+        ViewBag.Insert = "d-none";
+        ViewBag.Delete = "d-none";
+        ViewBag.Edit = "d-none";
+    }
+
+    @if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+    {
+        ViewBag.View = "";
+        ViewBag.Insert = "";
+        ViewBag.Delete = "d-none";
+        ViewBag.Edit = "d-none";
+
+    }
+
+    @if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+    {
+        ViewBag.View = "";
+        ViewBag.Insert = "";
+        ViewBag.Edit = "";
+        ViewBag.Delete = "d-none";
+    }
+
+    @if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+    {
+        ViewBag.View = "";
+        ViewBag.Insert = "";
+        ViewBag.Edit = "";
+        ViewBag.Delete = "";
+    }
+
+
+    <div class="container col-md-12 @ViewBag.View">
+
+        <div class="col-md-12">
+            <h2 class="text-center alert " style="background-color:#ffffff;">د زیرمتون اضافه کولو فارم</h2>
+            <hr />
+        </div>
+        @* Stock *@
+
+
+        <div class="card col-md-8 offset-md-2  ">
+            <div class="card-header ">
+                <h4 class="card-title "><strong>د موجوده زیرمتونو لیست</strong></h4>
+                <hr />
+                <a class="heading-elements-toggle">
+                    <i class="fa fa-ellipsis-v font-medium-3"></i>
+                </a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                    </ul>
+                </div>
+                <button type="button" id="btnAddStock" class="btn  btn-info @ViewBag.Insert" data-toggle="modal"
+                        data-target="#stock">
+                    د نوې زیرمتون اضافه کول
+                </button>
+            </div>
+
+            <table class="table table-responsive table-striped table-condensed dataTable_scroll table-bordered dataTables_scrollHead" id="tblStock">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+                        <th class="col-md-0.5">#</th>
+                        <th class="col-md-5">د زیرمتون نوم</th>
+                        <th class="col-md-5">مسول</th>
+                        <th class="col-md-5">موقعیت</th>
+                        <th class="col-md-5">تفصیل</th>
+                        <th class="col-md-1 @ViewBag.Edit"> تغیرول </th>
+                        <th class="col-md-1" @ViewBag.Delete>  حذف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+
+    @* modal for adding Stock *@
+    @*<div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="form-group">
+
+            <div class="modal fade text-left" id="stock" tabindex="-1" role="dialog" aria-labelledby="myModalLabel10"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary white">
+                            <h4 class="modal-title" id="myModalLabel100">د زیرمتون اضافه کول</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form data-ajax="true" asp-controller="ManageSmallTables" asp-action="SaveStock" data-ajax-success="funSuccessStock(data)" data-ajax-method="post" id="frmStock">
+                                <hr />
+                                <input hidden asp-for="stock.StockId" value="0" />
+                                <div asp-validation-summary="All" class="text-danger"></div>
+                                <div class="form-group">
+                                    <label asp-for="stock.Stock" class=""></label>
+                                    <input asp-for="stock.Stock" placeholder="زیرمتون نوم" class="form-control" />
+                                    <span asp-validation-for="stock.Stock" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="stock.EmployeeId" class=""></label>
+                                    <select asp-for="stock.EmployeeId" asp-items="@ViewBag.EmployeeId" style="height:47px;" class="form-control" dir="rtl">
+                                        <option value="">مسول </option>
+                                    </select>
+                                    <span asp-validation-for="stock.EmployeeId" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="stock.Location" class=""></label>
+                                    <input asp-for="stock.Location" placeholder=" موقعیت" class="form-control" />
+                                    <span asp-validation-for="stock.Location" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="stock.Details" class=""></label>
+                                    <textarea asp-for="stock.Details" placeholder=" تفصیل" class="form-control"></textarea>
+                                    <span asp-validation-for="stock.Details" class="text-danger"></span>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn grey btn-outline-secondary" id="btnCloseStock" data-dismiss="modal">بندول</button>
+                                    <button type="submit" id="btnSubmitStock" class="btn btn-outline-primary">ذخیره</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+    @*<form data-ajax="true" asp-action="DeleteStock" data-ajax-method="post" asp-controller="ManageSmallTables" data-ajax-success="deleted(data)">
+        <input hidden id="deleteId" asp-for="stock.StockId" />
+        <button type="submit" class="d-none" id="btnDelete"></button>
+    </form>*@
+
+    @section Scripts {
+        @await Html.PartialAsync("_ValidationScriptsPartial")
+
+        <script>
+            $(document).ready(function () {
+
+                loadStock();
+                //$(".dataTable").wrap("<div class='dataTables_scroll'/>");
+            })
+        </script>
+
+
+        @* Stock script functions *@
+        <script>
+        var showC = true;
+
+        function loadStock() {
+
+            $.ajax({
+                url: "/ManageSmallTables/LoadStock/",
+                type: "POST",
+                contentType: "application/json",
+                // data: '{txt:"' + $("#txt").val() + '"}',
+                datatype: "JSON",
+                success: function (result) {
+
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+                        var details = "";
+                        if (col.details == null) {
+                            details = "";
+                        } else {
+                            details = col.details;
+                        }
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td>' + col.stock + '</td>' +
+                            ' <td>' + col.employee + '</td>' +
+                            ' <td>' + col.location + '</td>' +
+                            ' <td>' + details + '</td>' +
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditStock(' + col.stockId + ',\'' + col.stock + '\',\'' + col.employeeId + '\',\'' + col.location + '\',\'' + details + '\')" class="btn btn-primary"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td class="@ViewBag.Delete"><button type="button" onclick="fnDeleteStock(' + col.stockId + ')" class="btn btn-danger"><i class="fa fa-trash-o"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    //MakeDataTableMini("#DataTables_Table_0")
+                    var table = $("#tblStock").dataTable();
+                      table.fnDestroy();
+                    $("#tblStock>tbody").html("").html(tr);
+                    if (true) {
+                        showC = false;
+                        $("#tblStock").DataTable({
+                            stateSave: true,
+                            //"scrollY":"400px",
+                            //"scrollX":"400px",
+
+                            "scrollX": true,
+
+                            "scrollY": "400px",
+                           // "scrollCollapse": true,
+                            //"scrollX": "400px",
+                            //"scrollHead": true,
+                            //"scrollXInner": "100%",
+
+                            "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "ټول"]],
+                            "pageLength": 5,
+                            "language": {
+                                "emptyTable": "په جدول کې معلومات شتون نه لري",
+                                "info": "د <b>( _START_  )</b> تر <b>( _END_  )</b> د <b>( _TOTAL_ )</b> ریکاروډونو څخه."
+                                ,
+                                "infoFiltered": "( <b>( _MAX_ )</b> ریکارډونه شتون لرې )",
+                                "lengthMenu": "ښودل_MENU_ ریکارډونو",
+                                "search": "پلټنه<span class='fa fa-search'></span> ",
+                                "searchPlaceholder": "پلټنه",
+                                "zeroRecords": "پدی نوم هیڅ ریکارډ پیدا نشو ",
+                                "paginate": {
+                                    "first": "لومړۍ پاڼه",
+                                    "previous": "مخکې",
+                                    "next": "وروسته",
+                                    "last": "پای"
+                                },
+                            },
+                            //bStateSave: !0, pagingType: "bootstrap_extended", lengthMenu: [[5, 15, 20, -1], [5, 15, 20, "All"]], pageLength: 10, columnDefs: [{
+                            //    orderable: !1, targets: [0]
+                            //}],
+                            //lengthMenu: [[5, 10, 25, 100, -1], [5, 10, 25, 100, "All"]],
+                            //buttons: [{ extend: "excel", className: "btn red moveTop ", text: "<i class='fa fa-file-excel-o' aria-hidden='true'>&nbsp;<b>Excel</b>" },
+                            //{ extend: "pdf", className: "btn dark moveTop", text: "<b>Pdf</b>&nbsp;<i class='fa fa-arrow-circle-down' aria-hidden='true'></i>" }],
+
+                            //dom: "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>",
+                        });
+                    }
+
+                    // $("#DataTables_Table_0").DataTable();
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function funSuccessStock(data) {
+
+            loadStock();
+
+            $("#frmStock")[0].reset();
+            $("#btnCloseStock").trigger("click");
+
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+            $("#btnSubmitStock").text("ذخیره ");
+        }
+
+        function EditStock(id, name,employeeId,location,details) {
+
+            //  alert(id + "," + name + "," + latinname + "," + category)
+            $("#stock_Stock").val(name);
+            $("#stock_EmployeeId").val(employeeId);
+            $("#stock_Location").val(location);
+            $("#stock_Details").val(details);
+            $("#stock_StockId").val(id);
+
+            $("#btnAddStock").trigger("click");
+
+            $("#btnSubmitStock").text("تغیرول");
+
+
+
+        }
+
+
+        function fnDeleteStock(comId) {
+            $("#deleteId").val(comId);
+            swal({
+                title: "آیا غواړی چې نوموړی ریکارډ حذف شې؟",
+                text: "",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "نه",
+                        value: null,
+                        visible: true,
+                        className: "",
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "هو",
+                        value: true,
+                        visible: true,
+                        className: "",
+                        closeModal: true
+                    }
+                }
+            }).then((isConfirm) => {
+                if (isConfirm) {
+                    $("#btnDelete").trigger("click");
+                }
+            });
+
+        }
+
+        function deleted(data) {
+
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+            loadStock();
+        }
+
+        $("#btnCloseStock").click(function () {
+
+            $("#frmStock")[0].reset();
+            $("#btnSubmitStock").text("ذخیره")
+
+        })
+        </script>
+    }

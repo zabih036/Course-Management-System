@@ -1,0 +1,784 @@
+﻿
+@using System.Collections.Generic
+@using System.Linq
+@using Microsoft.AspNetCore.Http
+@*@using Microsoft.AspNetCore.Http.Authentication*@
+@model AllViewModel
+
+@{
+    ViewData["Title"] = "Purchase";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#purchaseActive").addClass("active")</script>
+
+
+<div id="frmpurchase">
+
+    <div class="col-md-12 card border-top-pink border-top-3 border-bottom-blue border-bottom-3 box-shadow-0">
+        <div class="card-header">
+            <h2 class="card-title font-weight-bold">د پیرلو فارم</h2>
+            <a class="heading-elements-toggle"><i class="fa fa-ellipsis-v font-medium-3"></i></a>
+            <div class="heading-elements">
+                <ul class="list-inline mb-0">
+                    <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="card-content collapse show">
+            <div class="card-body row">
+                <div class="col-md-12 row">
+
+                    <div class="col-md-4">
+                        <div class="alert bg-primary alert-dismissible mb-2" role="alert">
+                            <strong>مجموعه افغانې:</strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; <strong class="text-lg-center" id="afghaniTotal">0</strong>
+                        </div>
+                        <div class="form-group">
+                            <input id="afghaniPay" name="Debit" onkeyup="payAfghani()" dir="rtl" placeholder="ورکړل شوي افغانې داخل کړئ" class="form-control" />
+                        </div>
+                        <div class="alert bg-primary alert-dismissible mb-2" role="alert">
+                            <strong>باقي افغانۍ:</strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; <strong class="text-lg-center" id="afghaniRemain">0</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert bg-info alert-dismissible mb-2" dir="rtl" role="alert">
+                            <strong>مجموعه کلدارې</strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; <strong class="text-lg-center" id="rupeTotal">0</strong>
+                        </div>
+                        <div class="form-group">
+                            <input id="rupePay" dir="rtl" onkeyup="payRupe()" placeholder="ورکړل شوي کلدارې داخل کړئ" class="form-control" />
+                        </div>
+                        <div class="alert bg-info alert-dismissible mb-2" dir="rtl" role="alert">
+                            <strong>باقي کلدارې</strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; <strong class="text-lg-center" id="rupeRemain">0</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert bg-success alert-dismissible mb-2" role="alert">
+                            <strong>مجموعه ډالر:</strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; <strong class="text-lg-center" id="dollerTotal">0</strong>
+                        </div>
+                        <div class="form-group">
+                            <input id="dollerPay" onkeyup="payDoller()" dir="rtl" placeholder="ورکړل شوي ډالر داخل کړئ" class="form-control" />
+                        </div>
+                        <div class="alert bg-success alert-dismissible mb-2" role="alert">
+                            <strong>باقي ډالر: </strong> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp; &nbsp; <strong class="text-lg-center" id="dollerRemain">0</strong>
+                        </div>
+                        <form data-ajax="true" data-ajax-url="/Employee/AddDealAmount" data-ajax-success="dealSuccess(data)" data-ajax-method="post" id="frmDeal">
+                            @* /////////////////  Afghani  debti and credit //////// *@
+                            <input hidden asp-for="dealingform.id" value="0" />
+                            <input hidden asp-for="dealingform.selling" value="0" />
+                            <input hidden asp-for="dealingform.afghaniCredit" value="0" />
+                            <input hidden asp-for="dealingform.afghaniDebit" value="0" />
+                            @* /////////////////  Rupe  debti and credit //////// *@
+                            <input hidden asp-for="dealingform.rupeCredit" value="0" />
+                            <input hidden asp-for="dealingform.rupeDebit" value="0" />
+                            @* /////////////////  Doller  debti and credit //////// *@
+                            <input hidden asp-for="dealingform.dollerCredit" value="0" />
+                            <input hidden asp-for="dealingform.dollerDebit" value="0" />
+                            @* /////////////////////////////////////////////////////// *@
+                            <div>
+                                <button type="submit" class="btn btn-lg btn-info float-left"><i class="ft-save"></i>ذخیره</button>
+                                <button type="button" class="btn btn-lg btn-success float-right" id="btnpurchaslist" onclick="allPurchased()"><i class="ft-plus-circle"></i>&nbsp; اخیستل شوي اجناس</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-1 col-md-12 border-primary">
+        <div class="card-content">
+            <div class="card-body">
+                @Html.AntiForgeryToken()
+                <form data-ajax="true" asp-action="Purchase" asp-controller="Employee" data-ajax-success="frmSuccess(data)" data-ajax-method="post" id="frmCustomerReg">
+                    <hr />
+                    <div class="col-md-12 row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input hidden asp-for="purchase.PurchaseId" value="0" />
+                                @*<input hidden asp-for="CustmerId" class="form-control" value="0" />*@
+                                <label asp-for="purchase.Bill_No" class=""></label>
+                                <input asp-for="purchase.Bill_No" dir="rtl" placeholder="د بیل نمبر داخل کړئ" class="form-control" />
+                                <span asp-validation-for="purchase.Bill_No" class="text-danger"></span>
+                            </div>
+                            <div class=" form-group">
+                                <label asp-for="purchase.DealerId" class=""></label><br />
+                                <select asp-for="purchase.DealerId" asp-items="@ViewBag.dealertype" class="form-control select2 select2-container select2-container--default select2-container--above" dir="rtl" style="width:100%">
+                                    <option value="">د شرکت نوم انتخاب کړئ</option>
+                                </select>
+                                <span asp-validation-for="purchase.DealerId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="purchase.ItemID" class=""></label>
+                                <select asp-for="purchase.ItemID" onchange="SelectItemInfo()" asp-items="@ViewBag.item" class="form-control select2 select2-container select2-container--default select2-container--above" dir="rtl" style="width:100%">
+                                    <option value="">جنس انتخاب کړئ</option>
+                                </select>
+                                <span asp-validation-for="purchase.ItemID" class="text-danger"></span>
+                            </div>
+                            <div id="hide1" class="">
+                                <div class="form-group">
+                                    <label asp-for="purchase.CompanyID" class=""></label>
+                                    <select asp-for="purchase.CompanyID" asp-items="@ViewBag.company" class="form-control select2 select2-container select2-container--default select2-container--above" dir="rtl" style="width:100%">
+                                        <option value="">د کمپنی نوم انتخاب کړئ</option>
+                                    </select>
+                                    <span asp-validation-for="purchase.CompanyID" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.CountryID" class=""></label>
+                                    <select asp-for="purchase.CountryID" asp-items="@ViewBag.country" class="form-control  select2 select2-container select2-container--default select2-container--above" dir="rtl" style="width:100%">
+                                        <option value="">د هېواد نوم انتخاب کړئ</option>
+                                    </select>
+                                    <span asp-validation-for="purchase.CountryID" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.PurchasePrice" class=""></label>
+                                    <input asp-for="purchase.PurchasePrice" dir="rtl" placeholder="د پېرېدلو بیه داخل کړئ" class="form-control " />
+                                    <span asp-validation-for="purchase.PurchasePrice" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.SalePrice" class=""></label>
+                                    <input asp-for="purchase.SalePrice" dir="rtl" placeholder="د خرڅلاو بیه داخل کړئ" class="form-control" />
+                                    <span asp-validation-for="purchase.SalePrice" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.CurrencyID" class=""></label>
+                                    <select asp-for="purchase.CurrencyID" asp-items="@ViewBag.currency" class="form-control" dir="rtl">
+                                        <option value="">د پیسو ډول </option>
+                                    </select>
+                                    <span asp-validation-for="purchase.CurrencyID" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label asp-for="purchase.ManuficturDate" class=""></label>
+                                <input asp-for="purchase.ManuficturDate" asp-format="0:yyyy-MM-dd" type="datetime-local" placeholder="د جنس د جوړیدو نېټه" class="form-control" />
+                                <span asp-validation-for="purchase.ManuficturDate" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="purchase.ExpireDate" class=""></label>
+                                <input asp-for="purchase.ExpireDate" asp-format="0:yyyy-MM-dd" type="datetime-local" placeholder="د جنس د ختمېدو نېټه" class="form-control" />
+                                <span asp-validation-for="purchase.ExpireDate" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="purchase.DateToExpiry" class=""></label>
+                                <input asp-for="purchase.DateToExpiry" dir="rtl" placeholder="د کارتنونو تعداد ورسوئ" class="form-control" />
+                                <span asp-validation-for="purchase.DateToExpiry" class="text-danger"></span>
+                            </div>
+                            <div id="hide2" class="">
+                                <div class="form-group">
+                                    <label asp-for="purchase.UnitID" class=""></label>
+                                    <select asp-for="purchase.UnitID" asp-items="@ViewBag.unit" class="form-control " dir="rtl">
+                                        <option value="">د جنس مقدار انتخاب کړئ</option>
+                                    </select>
+                                    <span asp-validation-for="purchase.UnitID" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.AmountInPackage" class=""></label>
+                                    <input asp-for="purchase.AmountInPackage" dir="rtl" placeholder="په کارتن کې د اجناسو تعداد ورسوئ" class="form-control" />
+                                    <span asp-validation-for="purchase.AmountInPackage" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.Quantity" class=""></label>
+                                    <input asp-for="purchase.Quantity" dir="rtl" placeholder="د کارتنونو تعداد ورسوئ" class="form-control" />
+                                    <span asp-validation-for="purchase.Quantity" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.shortageQuantity" class=""></label>
+                                    <input asp-for="purchase.shortageQuantity" dir="rtl" placeholder="د کارتنونو تعداد ورسوئ" class="form-control" />
+                                    <span asp-validation-for="purchase.shortageQuantity" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="purchase.StockID" class=""></label>
+                                    <select asp-for="purchase.StockID" asp-items="@ViewBag.stock" class="form-control " dir="rtl">
+                                        <option value="">ګودام انتخاب کړئ</option>
+                                    </select>
+                                    <span asp-validation-for="purchase.StockID" class="text-danger"></span>
+                                </div>
+
+
+                            </div>
+                        </div>
+                        <div class="col-md-12 d-none" id="repeatedItemList">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4 class="card-title"><strong> نوموړي جنس مختلف اقسام لري د خوښې وړ مو انتخاب کړئ</strong></h4>
+                                            <a class="heading-elements-toggle"><i class="fa fa-ellipsis-v font-medium-3"></i></a>
+                                            <div class="heading-elements">
+                                                <ul class="list-inline mb-0">
+
+                                                    <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="card-content collapse show">
+                                            <div class="card-body">
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered mb-0" id="tblDuplicateItems">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>انتخاب</th>
+                                                            <th>جنس</th>
+                                                            <th>کټګوري</th>
+                                                            <th>کمپني</th>
+                                                            <th>پیرلو بیه</th>
+                                                            <th>پلور بیه</th>
+                                                            <th>پيسو ډول</th>
+                                                            <th>د کارتن ظرفیت</th>
+                                                            <th>واحد</th>
+                                                            <th>جوړلو نیټه</th>
+                                                            <th>ختم نیټه</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="selectitem"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="form-group col-md-12 text-center">
+                        <button type="submit" id="btnSubmitPurchase" class="btn btn-primary btn-lg btn-icon-md"><i class="ft-save" id="btnsubmiticon"></i>&nbsp;<lable id="btnsubmitText">ذخیره</lable></button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="col-md-12 d-none" id="purchaseList">
+    <section>
+        <div class="row">
+
+            <div class="card">
+                <div class="card-header ">
+                    <h4 class="card-title "><strong>د پیرل شویو اجناسو لېست</strong></h4>
+
+                    <hr />
+
+                    <a class="heading-elements-toggle">
+                        <i class="fa fa-ellipsis-v font-medium-3"></i>
+                    </a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                            <li> <button class="btn btn-outline-info" onclick="backToPurchaseForm()">د پیرلو فارم &nbsp;<i class="bold ft-arrow-left"></i></button></li>
+                            @*
+                                <li><a data-action="close"><i class="ft-x"></i></a></li>*@
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content  collapse show">
+                    <div class="card-body">
+                        <div class="">
+                            <table class="table  table-responsive table-bordered dataex-fixh-basic dataTable" id="tblList">
+                                <thead>
+                                    <tr role="row">
+                                        <th>بیل نمبر</th>
+                                        <th>جنس</th>
+                                        <th>شرکت</th>
+                                        <th>کمپنی</th>
+                                        <th>کارتن تعداد</th>
+                                        <th>د کارتن ظرفیت</th>
+                                        <th>مقدار</th>
+                                        <th>پیرلو بیه</th>
+                                        @*<1">پلور بیه</th>*@
+                                        <th>مجموعه</th>
+                                        <th>پیسو ډول</th>
+                                        @*<1"  >جوړولو نیټه</th>*@
+                                        <th>ختم نیټه</th>
+                                        <th>ګودام</th>
+                                        <th>واپس کول</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody></tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+<input type="hidden" id="txtcompany" />
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+
+<script>
+    var duplicatedItemList = true;
+    var duplicatedItemList2 = true;
+
+    var purchase = true;
+    function frmSuccess(message) {
+        if (purchase) {
+            $("#txtcompany").val($("#purchase_DealerId").val());
+            purchase = false;
+        }
+        toastr.option
+        toastr.success(message, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+
+        //if ($("#purchase_CurrencyID").val() == 1) {
+        //    $("#afghaniTotal").text($("#purchase_PurchasePrice").val() * $("#purchase_Quantity").val())
+        //}
+        if (message == " جنس وپېرل شو" || message == "جنس واپس شو") {
+            assignDealAmount();
+        }
+        if (message != "د واپس شوي جنس تعداد مو ډیر رسولی اصلاح یې کړئ") {
+            $("#frmCustomerReg")[0].reset();
+
+            $("#purchase_DealerId").val($("#txtcompany").val());
+            $("#purchase_DealerId").select2().trigger('change');
+        }
+    }
+    function dealSuccess(message) {
+
+        //toastr.option
+        //toastr.success(message, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+
+        $("#dealingform_id").val(0);
+        //("#afghaniTotal").text("");
+        //("#afghaniRemain").text("");
+        //("#rupeTotal").text("");
+        //("#rupeRemain").text("");
+        //("#dollerTotal").text("");
+        //("#dollerRemain").text("");
+
+        $("#afghaniTotal").text("0");
+        $("#afghaniPay").val("");
+        $("#afghaniRemain").text("0");
+        $("#rupeTotal").text("0");
+        $("#rupePay").val("");
+        $("#rupeRemain").text("0");
+        $("#dollerTotal").text("0");
+        $("#dollerPay").val("");
+        $("#dollerRemain").text("0");
+        toastr.option
+        toastr.success(message, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+        $("#frmDeal")[0].reset();
+    }
+
+    function assignDealAmount() {
+        var totalID = "";
+        var remainID = "";
+        var credit = "";
+        if ($("#purchase_CurrencyID").val() == 1) {
+            totalID = "afghaniTotal";
+            remainID = "afghaniRemain";
+            credit = "dealingform_afghaniCredit";
+        }
+        else if ($("#purchase_CurrencyID").val() == 2) {
+            totalID = "rupeTotal";
+            remainID = "rupeRemain";
+            credit = "dealingform_rupeCredit";
+        }
+        else if ($("#purchase_CurrencyID").val() == 3) {
+            totalID = "dollerTotal";
+            remainID = "dollerRemain";
+            credit = "dealingform_dollerCredit";
+        }
+        var totalprice = (parseInt($("#purchase_PurchasePrice").val()) * parseInt($("#purchase_Quantity").val())) + parseInt($("#" + totalID).text());
+        $("#" + totalID).text(totalprice);
+        $("#" + remainID).text(totalprice);
+
+        $("#dealingform_id").val($("#purchase_DealerId").val());
+
+        $("#" + credit).val(totalprice);
+    }
+    function payAfghani() {
+
+        $("#afghaniRemain").text(parseInt($("#afghaniTotal").text()) - $("#afghaniPay").val());
+        ////////////  afghaniCredit ///////////
+        $("#dealingform_afghaniCredit").val(parseInt($("#afghaniTotal").text()));
+        ////////////// afghani Debit /////////////
+        $("#dealingform_afghaniDebit").val($("#afghaniPay").val());
+    }
+    function payRupe() {
+        if ($("#rupePay").val() == "") {
+            $("#rupeRemain").text($("#rupeTotal").text())
+        }
+        else {
+            $("#rupeRemain").text(parseInt($("#rupeTotal").text()) - parseInt($("#rupePay").val()));
+            ////////////  rupe Credit ///////////
+            $("#dealingform_rupeCredit").val(parseInt($("#rupeTotal").text()));
+            ////////////  rupe debit ///////////
+            $("#dealingform_rupeDebit").val($("#rupePay").val());
+        }
+    }
+    function payDoller() {
+        if ($("#dollerDeal").val() == "") {
+            $("#dollerRemain").text($("#dollerTotal").text());
+        }
+        else {
+            $("#dollerRemain").text(parseInt($("#dollerTotal").text()) - parseInt($("#dollerPay").val()));
+            ////////////  doller Credit ///////////
+            $("#dealingform_dollerCredit").val(parseInt($("#dollerTotal").text()));
+            ////////////  afghaniCredit ///////////
+            $("#dealingform_dollerDebit").val($("#dollerPay").val());
+        }
+    }
+
+
+    function PassValues(BillNo, ItemId, CompanyId, Quantity, SalePrice, CountryId, CurrencyId, ManufictureDate, ExpireDate, StockId) {
+        $("#purchase_Bill_No").val(BillNo);
+        $("#ItemId :selected").val(ItemId);
+        //  $("#CorporationId :selected").val(CorporationId);
+        $("#CompanyId :selected").val(CompanyId);
+        $("#Quantity").val(Quantity);
+        // $("#PurchasePrice").val(PurchasePrice);
+        $("#SalePrice").val(SalePrice);
+        $("#CountryId :selected").val(CountryId);
+        $("#CurrencyId :selected").val(CurrencyId);
+        //$("#CompanyId :CountryId").val(CountryId);
+        //$("#CompanyId :CountryId").val(CountryId);
+        $("#StockId :selected").val(StockId);
+
+        //  $("#editfrm").removeClass("d-none");
+        //  $("#purchaseList").addClass("d-none");
+    }
+    function showlist() {
+        $("#purchaseList").removeClass("d-none");
+        $("#frmpurchase").addClass("d-none");
+
+    }
+    function selectedItem(company, companyid, countryid, country, purchaseprice, saleprice, currencyid, currency, manuficturedate, expiredate, unitid, amountinpackage, shortage, datetoexpiry) {
+        $("#purchase_CompanyID").val(companyid);
+        $("#purchase_CompanyID").select2().trigger('change');
+
+        // $("#purchase_Company :selected").val(company);
+        $("#purchase_CountryID").val(countryid);
+        $("#purchase_CountryID").select2().trigger('change');
+
+        $("#purchase_PurchasePrice").val(purchaseprice);
+        $("#purchase_SalePrice").val(saleprice);
+        // $("#purchase_CurrencyID").text(currency);
+        $("#purchase_CurrencyID").val(currencyid);
+
+        $("#purchase_UnitID").val(unitid);
+        $("#purchase_AmountInPackage").val(amountinpackage);
+
+        $("#purchase_ManuficturDate").val(manuficturedate);
+        $("#purchase_ExpireDate").val(expiredate);
+
+        $("#purchase_DateToExpiry").val(datetoexpiry);
+        $("#purchase_shortageQuantity").val(shortage);
+
+        $("#hide1").removeClass("d-none");
+        $("#hide2").removeClass("d-none");
+        $("#repeatedItemList").addClass("d-none");
+    }
+
+    function SelectItemInfo() {
+        // duplicatedItemList = true;
+        var dupItemList = true;
+
+        if (duplicatedItemList) {
+            var id = $("#purchase_ItemID").val();
+            $.ajax({
+                url: '/Employee/FetchItemInfo/',
+                type: 'POST',
+                contentType: "application/json",
+                data: '{}',
+                datatype: "JSON",
+                success: function (result) {
+                    var itemCount = 0;
+                    var repeatedItem = "";
+                    var count = 0;
+
+                    $.each(result, function (i, col) {
+                        if (col.itemid == id) {
+                            count++;
+                            itemCount += count;
+                        }
+
+                    });
+                    if (itemCount == 0) {
+                        toastr.option
+                        toastr.warning(".نوموړي جنس په ګودام کې نشته، مهرباني وکړئ خصوصیات یې خپله ورسوئ", '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+
+
+                        $("#hide1").removeClass("d-none");
+                        $("#hide2").removeClass("d-none");
+                        $("#repeatedItemList").addClass("d-none");
+
+                    }
+                    else if (itemCount == 1) {
+                        $.each(result, function (i, col) {
+                            if (col.itemid == id) {
+                                $("#purchase_CompanyID").val(col.companyid);
+                                $("#purchase_CompanyID").select2().trigger('change');
+
+                                $("#purchase_CountryID").val(col.countryid);
+                                $("#purchase_CountryID").select2().trigger('change');
+                                // alert(col.unitid);
+                                $("#purchase_UnitID").val(col.unitid);
+                                $("#purchase_AmountInPackage").val(col.amountinpackage);
+                                $("#purchase_PurchasePrice").val(col.purchaseprice);
+                                $("#purchase_SalePrice").val(col.saleprice);
+                                $("#purchase_CurrencyID").val(col.currencyid);
+                                $("#purchase_ManuficturDate").val(col.manuficturedate);
+
+                                $("#purchase_ExpireDate").val(col.expiredate);
+
+                                $("#purchase_DateToExpiry").val(col.datetoexpiry);
+                                $("#purchase_shortageQuantity").val(col.shortage);
+
+                                $("#hide1").removeClass("d-none");
+                                $("#hide2").removeClass("d-none");
+                                $("#repeatedItemList").addClass("d-none");
+                            }
+                        });
+
+                    }
+                    else {
+                        $.each(result, function (i, col) {
+                            if (col.itemid == id) {
+
+                                repeatedItem += "   <tr>";
+                                repeatedItem += "       <th scope='row'><input type='radio' onclick='selectedItem(\"" + col.company + "\",\"" + col.companyid + "\",\"" + col.countryid + "\",\"" + col.country + "\",\"" + col.purchaseprice + "\",\"" + col.saleprice + "\",\"" + col.currencyid + "\",\"" + col.currency + "\",\"" + col.manuficturedate + "\",\"" + col.expiredate + "\",\"" + col.unitid + "\",\"" + col.amountinpackage + "\",\"" + col.shortage + "\",\"" + col.datetoexpiry + "\")' style='width: 30px; height: 30px; ' name='selectitem' /></th>";
+                                repeatedItem += "       <td>" + col.itemname + "</td>";
+                                repeatedItem += "       <td>" + col.category + "</td>";
+                                repeatedItem += "       <td>" + col.company + "</td>";
+                                repeatedItem += "       <td>" + col.purchaseprice + "</td>";
+                                repeatedItem += "       <td>" + col.saleprice + "</td>";
+                                repeatedItem += "       <td>" + col.currency + "</td>";
+                                repeatedItem += "       <td>" + col.amountinpackage + "</td>";
+                                repeatedItem += "       <td>" + col.unit + "</td>";
+                                //repeatedItem += "       <td>" + dateFormat(new Date(parseInt((col.manuficturedate).match(/\d+/)[0]))) + "</td>";
+                                repeatedItem += "       <td>" + col.manuficturedate + "</td>";
+                                repeatedItem += "       <td>" + col.expiredate + "</td>";
+                                repeatedItem += "   </tr>";
+                            }
+
+                            $("#selectitem").html('').html(repeatedItem);
+                            if (dupItemList) {
+                                dupItemList = false;
+
+                            }
+                            $("#hide1").addClass("d-none");
+                            $("#hide2").addClass("d-none");
+                            $("#repeatedItemList").removeClass("d-none");
+
+                        });
+                    }
+
+                    //function dateFormat(d) {
+                    //    console.log(d);
+                    //    return ((d.getMonth() + 1) + "").padStart(2, "0")
+                    //        + "/" + (d.getDate() + "").padStart(2, "0")
+                    //        + "/" + d.getFullYear();
+                    //}
+                },
+                error: function (err) {
+                    console.log(err)
+                }
+            })
+
+        }
+
+    }
+</script>
+<script>
+    var show = true;
+    function allPurchased() {
+
+
+        $("#frmpurchase").addClass("d-none");
+        $("#purchaseList").removeClass("d-none");
+
+        //$("#frmpurchase").animate({
+        //    left: '250px',
+        //    opacity: '0.9',
+
+        //}).hide(1000);
+        //$("#purchaseList").animate({
+
+        //}).show(500);
+        //$("#purchaseList").removeClass("d-none");
+        $.ajax({
+            url: '/Employee/FetchPurchasedItems/',
+            type: 'POST',
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+
+            success: function (result) {
+                //  consol.log(result);
+                var tr = "";
+
+                $.each(result, function (i, col) {
+                    tr += "  <tr> ";
+                    tr += "      <td>" + col.billno + "</td> ";
+                    tr += "      <td>" + col.item + "</td> ";
+                    tr += "      <td>" + col.dealer + "</td> ";
+                    tr += "      <td>" + col.company + "</td> ";
+                    tr += "      <td>" + (col.quantity / col.amountinpackage) + "</td> ";
+                    tr += "      <td>" + col.amountinpackage + "</td> ";
+                    tr += "      <td>" + col.unit + "</td> ";
+                    tr += "      <td>" + col.purchaseprice + "</td> ";
+
+                    //   tr += "      <td>" + col.saleprice + "</td> ";
+                    tr += "      <td>" + ((col.quantity / col.amountinpackage) * col.purchaseprice) + "</td> ";
+                    tr += "      <td>" + col.currency + "</td> ";
+                    tr += "      <td>" + col.expiredate + "</td> ";
+                    tr += "      <td>" + col.stock + "</td> ";
+                    tr += "      <td><button class='btn btn-outline-warning'onclick='halfPurchaseReturn(\"" + col.purchaseid + "\",\"" + col.billno + "\",\"" + col.itemid + "\",\"" + col.item + "\",\"" + col.dealerid + "\",\"" + col.dealer + "\",\"" + col.companyid + "\",\"" + col.countryid + "\",\"" + col.purchaseprice + "\",\"" + col.saleprice + "\",\"" + col.currencyid + "\",\"" + col.manuficturedate + "\",\"" + col.expiredate + "\",\"" + col.quantity + "\",\"" + col.unitid + "\",\"" + col.amountinpackage + "\",\"" + col.stockid + "\")'><i class='ft-refresh-cw'></i>&nbsp; <strong> واپسي</strong></button></td> ";
+                    //tr += "      <td><form data-ajax='true' data-ajax-url='/Employee/TotalDelete' data-ajax-success='RetunedItemSuccess(data)' data-ajax-method='post'><input type='hidden' name='PurchaseId' value=' " + col.purchaseid + " '> <button type='submit' class='btn btn-outline-danger'><i class='ft-refresh-cw'></i>&nbsp; <strong>واپس</strong></button></form></td> ";
+                    tr += "  </tr>";
+                });
+                $("#tblList>tbody").html("").html(tr);
+                if (show) {
+                    show = false;
+                    $("#tblList").DataTable({
+                        stateSave: true,
+                        "scrollY": "400px",
+                        "scrollX": true,
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "ټول"]],
+                        "pageLength": 5,
+                        "language": {
+                            "emptyTable": "په جدول کې معلومات شتون نه لري",
+                            "info": "د <b>( _START_  )</b> تر <b>( _END_  )</b> د <b>( _TOTAL_ )</b> ریکاروډونو څخه.",
+                            "infoFiltered": "( <b>( _MAX_ )</b> ریکارډونه شتون لرې )",
+                            "infoPostFix": "",
+
+                            "lengthMenu": "ښودل_MENU_ ریکارډونو",
+                            "search": "پلټنه<span id='tblSearch' class='fa fa-search'></span> ",
+                            "searchPlaceholder": "پلټنه",
+                            "zeroRecords": "پدی نوم هیڅ ریکارډ پیدا نشو ",
+                            "paginate": {
+                                "first": "لومړۍ پاڼه",
+                                "previous": "مخکې",
+                                "next": "وروسته",
+                                "last": "پای"
+                            },
+                        },
+
+                    });
+                }
+
+                function dateFormat(d) {
+                    console.log(d);
+                    return ((d.getMonth() + 1) + "").padStart(2, "0")
+                        + "/" + (d.getDate() + "").padStart(2, "0")
+                        + "/" + d.getFullYear();
+                }
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        })
+
+    }
+
+    function backToPurchaseForm() {
+
+        $("#frmpurchase").removeClass("d-none");
+        $("#purchaseList").addClass("d-none");
+
+        ///////////////////////////////
+        //$("#frmpurchase").animate({
+        //        left: '250px',
+        //        opacity: '0.9',
+
+        //}).show(400);
+
+
+        //$("#purchaseList").animate({
+
+        // }).hide(400);
+    }
+
+    function halfPurchaseReturn(purchaseid, billno, itemid, item, dealerid, dealer, companyid, countryid, purchaseprice, saleprice, currencyid, manuficturedate, expiredate, quantity, unitid, amountinpackage, stockid) {
+
+
+
+        duplicatedItemList = false;
+        $("#dealingform_selling").val(-1);
+
+        $("#purchase_PurchaseId").val(purchaseid);
+
+        $("#purchase_Bill_No").val(billno);
+
+        $("#purchase_DealerId").val(dealerid);
+        $("#purchase_DealerId").select2().trigger('change');
+
+        $("#purchase_ItemID").val(itemid);
+        $("#purchase_ItemID").select2().trigger('change');
+
+        $("#purchase_CompanyID").val(companyid);
+        $("#purchase_CompanyID").select2().trigger('change');
+
+        $("#purchase_CountryID").val(countryid);
+        $("#purchase_CountryID").select2().trigger('change');
+
+        $("#purchase_PurchasePrice").val(purchaseprice);
+
+        $("#purchase_SalePrice").val(saleprice);
+
+        $("#purchase_CurrencyID").val(currencyid);
+
+        $("#purchase_ManuficturDate").val(manuficturedate);
+        $("#purchase_ExpireDate").val(expiredate);
+
+        $("#purchase_Quantity").val(quantity / amountinpackage);
+        $("#purchase_UnitID").val(unitid);
+        $("#purchase_AmountInPackage").val(amountinpackage);
+        $("#purchase_StockID").val(stockid);
+
+        $("#frmpurchase").removeClass("d-none");
+        $("#purchaseList").addClass("d-none");
+
+        $("#btnsubmitText").text("واپس کول");
+        $("#btnsubmit").removeClass("btn btn-primary");
+        $("#btnsubmit").addClass("btn btn-outline-warning");
+
+        $("#btnsubmiticon").removeClass("ft-save");
+        $("#btnsubmiticon").addClass("ft-refresh-cw");
+        ////////////////////  disabling un required items ////////
+
+        //$("#purchase_Bill_No").attr("disabled");
+
+        //$("#purchase_DealerId").attr("disabled");
+        //$("#purchase_ItemID").attr("disabled");
+
+        //$("#purchase_CompanyID").attr("disabled");
+        //$("#purchase_CountryID").attr("disabled");
+        //$("#purchase_PurchasePrice").attr("disabled");
+        //$("#purchase_SalePrice").attr("disabled");
+        //$("#purchase_CurrencyID").attr("disabled");
+
+        //  $("#purchase_ManufictureDate").val(manuficturedate);
+        //  $("#purchase_ExpireDate").val(expiredate);
+
+        //$("#purchase_Quantity").val(quantity);
+        //$("#purchase_UnitID").attr("disabled");
+        //$("#purchase_AmountInPackage").attr("disabled");
+        //$("#purchase_StockID").attr("disabled");
+
+    }
+    //function RetunedItemSuccess(message) {
+    //    assignDealAmount();
+    //        toastr.option
+
+    //        toastr.warning(message, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+    //    $("#frmCustomerReg")[0].reset();
+    //    allPurchased();
+    //}
+</script>

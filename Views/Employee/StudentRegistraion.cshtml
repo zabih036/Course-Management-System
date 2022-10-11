@@ -1,0 +1,690 @@
+﻿
+@model AllViewModel
+
+@{
+    ViewData["Title"] = "Student Registration Form";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#customerActive").addClass("active")</script>
+
+
+<style>
+
+    .camera {
+        /*padding: 8px;*/
+        background-color: antiquewhite;
+        /*border-radius: 48%;*/
+        color: whitesmoke;
+        position: absolute;
+        margin-top: 0px;
+        margin-left: 0px;
+        cursor: pointer;
+    }
+
+        .camera:hover {
+            margin-top: -5.90px;
+            margin-left: 54px;
+            border: 1.5px solid white;
+        }
+
+    .profileImage {
+        /*border: 5px solid white;*/
+        width: 100%;
+        height: 100%;
+        /*border-radius: ;*/
+        object-fit: fill;
+        margin-top: 0px;
+        /*position:absolute;*/
+        margin-left: 100px;
+        left: 0px;
+        right: 0px;
+    }
+</style>
+
+@if (ViewBag.Alert != "empty")
+{
+    <div class="alert alert-success alert-dismissible" role="alert" id="divSuccess">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        @ViewBag.Alert
+    </div>
+}
+
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorize
+
+@if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+
+    @await Html.PartialAsync("AccessDeniedPartial")
+
+
+    ViewBag.view = "d-none";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+
+@if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    //  ViewBag.Delete = "";
+}
+
+<div class=" row">
+
+    <div class="col-md-2" style="text-align:left">
+        <a asp-action="Index" asp-controller="Class" class="btn btn-info "> Class Form </a>
+    </div>
+
+    <div class="col-md-8">
+        <h2 class="text-center alert" style="background-color:#ffffff;">
+            <strong>Student Registraion Form</strong>
+        </h2>
+    </div>
+
+    <div class="col-md-2" style="text-align:left">
+        <button id="btnList" class="btn btn-info ">Student List  </button>
+    </div>
+
+    <hr />
+
+</div>
+
+<div class="container-fluid card  @ViewBag.view">
+
+    <div class="card col-md-12">
+        <div class="card-header ">
+            <h4 class="card-title ">
+                <strong></strong>
+            </h4>
+            <hr />
+            <a class="heading-elements-toggle">
+                <i class="fa fa-ellipsis-v font-medium-3"></i>
+            </a>
+            <div class="heading-elements">
+                <ul class="list-inline mb-0">
+
+                    <li>
+                        <a data-action="expand"><i class="ft-maximize"></i></a>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+
+        <section id="divInput" style="">
+
+            @Html.AntiForgeryToken()
+
+
+            <form asp-controller="Employee" asp-action="StudentRegistraion" enctype="multipart/form-data" method="post" id="frmEmployee">
+                <div class="col-md-12 row">
+                    <input hidden asp-for="student.oldEmail" value="'0'" />
+                    <input hidden asp-for="student.defalut" value="0" />
+                    <input hidden asp-for="student.StudentID" value="0" />
+                    @*<input hidden asp-for="EmployeeId" value="0" />*@
+                    @*<div asp-validation-summary="All" class="text-danger"></div>*@
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="student.Name" class=""></label>
+                            <input asp-for="student.Name" placeholder="Student Name" class="form-control" />
+                            <span asp-validation-for="student.Name" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="student.FatherName" class=""></label>
+                            <input asp-for="student.FatherName" placeholder="Student's Father Name" class="form-control" />
+                            <span asp-validation-for="student.FatherName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="student.Gender" class=""></label>
+                            <select asp-for="student.Gender" style="height:47px;" class="form-control">
+                                <option value="">Gender </option>
+                                <option value="Male">Male </option>
+                                <option value="Female">Female </option>
+                            </select>
+                            <span asp-validation-for="student.Gender" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="student.Adress" class=""></label>
+                            <input asp-for="student.Adress" placeholder=" Student's Address " class="form-control" />
+                            <span asp-validation-for="student.Adress" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="student.Phone" class=""></label>
+                            <input asp-for="student.Phone" placeholder="Phone Number" class="form-control" />
+                            <span asp-validation-for="student.Phone" class="text-danger"></span>
+                        </div>
+
+
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="student.Email" class=""></label>
+                            <input asp-for="student.Email" placeholder="Email Address" value="0" class="form-control" />
+                            <span asp-validation-for="student.Email" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="student.idCardNumber" class=""></label>
+                            <input asp-for="student.idCardNumber" placeholder="Student ID Card Number" class="form-control" />
+                            <span asp-validation-for="student.idCardNumber" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="student.School" class=""></label>
+                            <input asp-for="student.School" placeholder="School Name" class="form-control" />
+                            <span asp-validation-for="student.School" class="text-danger"></span>
+                        </div>
+                        <br />
+                        <div class="form-group ">
+
+
+                            <div class="col-md-12 row" style="margin:0px;padding:0px;">
+                                <div class="col-md-6 " style="padding-left:0;">
+                                    <label asp-for="student.Image" class=""></label>
+                                    <button type="button" class="btn btn-info btn-block " style="margin-top:0px;" id="browseBtn">Browse Image</button>
+                                    <button type="button" class="btn btn-danger btn-block " style="margin-top:52px;" id="browseCancel"> Clear Image</button>
+                                </div>
+
+                                <div class="border col-md-6 text-center">
+                                    <input asp-for="student.Image" class="d-none" accept="image/jpeg, image/jpg,image/png" name="img" style="border:1px solid" id="browseInput" />
+                                    <img src="~/images/StaticImages/browse.png" class=" profileImage" id="browseImg" style="height:175px; padding:0px;margin:0px;cursor:pointer;" />
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="form-group  @ViewBag.Insert" style="margin-top:4px;">
+                            <button type="reset" id="btnReset" class="btn btn-warning btn-lg btn-icon-md">Cancel</button>
+                            <button type="submit" id="btnSubmitEmployee" class="btn btn-primary btn-lg btn-icon-md">Register</button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </form>
+
+        </section>
+
+        <section id="divTable" style="display:none">
+
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead" id="tblStudent">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+
+                        <th style="max-width:1%;">#</th>
+                        <th class="col-md-1">Image</th>
+                        <th class="col-md-1">Name</th>
+                        <th class="col-md-1">F/Name</th>
+                        <th class="col-md-1">Gender</th>
+                        <th class="col-md-1">Address</th>
+                        <th class="col-md-1">Phone</th>
+                        <th class="col-md-1">Email</th>
+                        <th class="col-md-1">Registration Date</th>
+                        <th class="col-md-1">ID Card No</th>
+                        <th class="col-md-1">School</th>
+                        <th class="col-md-1">Classes</th>
+                        <th style="max-width:1%;" class=" @ViewBag.Edit">Edit</th>
+                        <th style="max-width:1%;" class=" @ViewBag.Edit"> Class</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+
+
+    </div>
+</div>
+
+<form data-ajax="true" asp-action="DeleteDealer" data-ajax-method="post" asp-controller="Employee" data-ajax-success="deleted(data)">
+    <input hidden id="did" asp-for="student.StudentID" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+
+@*  ///////////////  Currency Exchange ////////////////// *@
+<div class="modal fade text-left" id="classAssigning" tabindex="-1" role="dialog" aria-labelledby="myModalLabel35"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header col-md-12 ">
+                <div >
+                    <h3 class="modal-title" id="myModalLabel35"> Assign student to class</h3>
+                </div>          
+            </div>
+            <div class="modal-body">
+                <div class="" id="rating">
+                    <section id="divTable" >
+
+                        <table class="table table-responsive table-striped table-condensed table-bordered " id="tblClasses">
+                            <thead class="scrollable-container ps--scrolling-x">
+                                <tr role="row">
+                                    <th class="col-md-1">Class</th>
+                                    <th class="col-md-1">Department</th>
+                                    <th class="col-md-1">Class Type</th>
+                                    <th class="col-md-1">Start Time</th>
+                                    <th class="col-md-1">End Time</th>
+                                    <th class="col-md-1">Shift</th>
+                                    <th class="col-md-1">Start Date</th>
+                                    <th class="col-md-1">End Date</th>
+                                    <th class="col-md-1">Total Fee</th>                                  
+                                    <th class="col-md-1">Assign </th>                                  
+                                </tr>
+                            </thead>
+
+                            <tbody></tbody>
+
+                        </table>
+                    </section>
+
+                 
+                </div>            
+            </div> 
+            <form asp-action="AddStudentToclass" asp-controller="Class" data-ajax="true" data-ajax-method="post" id="fromStClass" data-ajax-success="fnClassAssignedSuccess(data)">
+
+                <hr />
+                <div class="card-body row">
+                    <input hidden asp-for="stdClass.StudentId" class="form-control"  />
+                    <input hidden asp-for="stdClass.ClassId" class="form-control" />
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+
+                            <label asp-for="stdClass.Fee" ></label>
+                            <input asp-for="stdClass.Fee"  class="form-control inactive"  />
+                            @*<span asp-validation-for="Note" class="text-danger"></span>*@
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="stdClass.PaidAmount" class=""></label>
+                            <input asp-for="stdClass.PaidAmount" class="form-control " placeholder="Enter class Fee" />
+                            <span asp-validation-for="stdClass.PaidAmount" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="stdClass.Discount" class=""></label>
+                            <input asp-for="stdClass.Discount" class="form-control " value="0" placeholder="Discount" />
+                        </div>
+
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="stdClass.Remain" class=""></label>
+                            <input asp-for="stdClass.Remain" class="form-control "  />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="stdClass.BillNo" class=""></label>
+                            <input asp-for="stdClass.BillNo" class="form-control " />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="stdClass.Description" class=""></label>
+                            <textarea asp-for="stdClass.Description" class="form-control "rows="1"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer ">
+                        <button type="reset" id="btnreset" class="btn btn-outline-warning btn-icon-md">Clear</button>
+                        <input type="submit" class="btn btn-outline-primary " id="btnAssingClass" value="Register">
+                        <input type="reset" id="btnResetAssign" class="btn btn-outline-secondary" data-dismiss="modal" value="Close">
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<input hidden id="stdId"   />
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        $(document).ready(function () {
+            loadStudents();
+            loadClasses();
+            $("#frmEmployee")[0].reset();
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#divSuccess").delay(6000).fadeOut();
+        })
+    </script>
+    @* image code *@
+    <script>
+
+        $("#browseBtn").click(function () {
+
+            $("#browseInput").trigger("click");
+
+
+        })
+        $("#browseImg").click(function () {
+
+            $("#browseInput").trigger("click");
+
+        })
+
+        $("#browseInput").change(function () {
+            if (this.files && this.files[0]) {
+                var fileReader = new FileReader();
+                fileReader.readAsDataURL(this.files[0]);
+
+                fileReader.onload = function (x) {
+
+                    if (x != null)
+
+
+
+                        $("#browseImg").attr("src", x.target.result);
+                    $("#student_defalut").val("0");
+
+
+                }
+            }
+        })
+    </script>
+@* Classes  *@
+<script>
+    function loadClasses() {
+
+            $.ajax({
+                url: "/Class/FetchClass/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    var startHour = "";
+                    var startMinute = "";
+                    var endHour = "";
+                    var endMinute = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+
+
+                        if (col.startHour < 10) {
+                            startHour = ("0" + col.startHour).toString();
+                        }
+                        else {
+                            startHour = col.startHour.toString();
+                        }
+                        if (col.startHour < 10) {
+                            startMinute = ("0" + col.startMinute).toString();
+                        }
+                        else {
+                            startMinute = col.startMinute.toString();
+                        }
+                        ///////////////////////////////////////
+
+                        if (col.endHour < 10) {
+                            endHour = "0" + col.endHour;
+                        }
+                        else {
+                            endHour = col.endHour.toString();
+                        }
+                        if (col.endMinute < 10) {
+                            endMinute = "0" + col.endMinute;
+                        }
+                        else {
+                            endMinute = col.endMinute.toString();
+                        }
+                        tr += '<tr  role="row">' +
+                            '<td >' + col.className + '</td>' +
+                            '<td >' + col.department + '</td>' +
+                            '<td >' + col.classType + '</td>' +
+                            '<td >' + (startHour + ':' + startMinute + ' ' + col.startMiridiam) + '</td>' +
+                            '<td >' + (endHour + ':' + endMinute + ' ' + col.endMiridiam) + '</td>' +
+                            '<td >' + col.shift + '</td>' +
+                            '<td >' + col.startDateShow + '</td>' +
+                            '<td >' + col.endDateShow + '</td>' +
+                            '<td >' + col.totalFee + '</td>' +
+                            ' <td  class="@ViewBag.Edit"><button type="button" onclick="fnAssignStudentToClass(' + col.classId + ',\'' + col.totalFee + '\',\'' + i + '\')" class="btn btn-primary"><i id="' + (i) + '" class=" chk"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblClasses").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblClasses>tbody").html("").html(tr);
+
+                    $("#tblClasses").DataTable({
+                            "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                        });
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+    }
+    function AddStudentClassModal(studentId) {
+        $("#stdId").val(studentId)
+        $("#btnResetAssign").trigger("click");
+  }
+    function fnAssignStudentToClass(classId, fee, i) {
+       
+
+        $("#stdClass_StudentId").val($("#stdId").val())
+        $("#stdClass_ClassId").val(classId)
+        $("#stdClass_Fee").val(fee)
+        $(".chk").removeClass("fa fa-check");
+        $("#" + i).toggleClass("fa fa-check");
+    } 
+    $("#stdClass_PaidAmount").keyup(function () {
+        var discount = (parseInt($("#stdClass_Fee").val()) * parseInt($("#stdClass_Discount").val())) / 100
+        var remain = (parseInt($("#stdClass_Fee").val()) - parseInt($("#stdClass_PaidAmount").val()) - discount)
+
+        $("#stdClass_Remain").val(remain)
+    })
+    $("#stdClass_Discount").keyup(function () {
+        var discount = (parseInt($("#stdClass_Fee").val()) * parseInt($("#stdClass_Discount").val())) / 100
+        var remain = (parseInt($("#stdClass_Fee").val()) - parseInt($("#stdClass_PaidAmount").val()) - discount)
+
+        $("#stdClass_Remain").val(remain)
+    })
+    function fnClassAssignedSuccess(data) {
+          
+        toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+        $("#fromStClass")[0].reset();
+        $("#btnResetAssign").trigger("click");
+        loadStudents();
+    }
+</script>
+    @* employee script functions *@
+    <script>
+
+        function loadStudents() {
+            $.ajax({
+                url: "/Employee/FetchStudents/",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+                        var details = "";
+                        if (col.details == "null") {
+                            details = "";
+
+                        }
+                        else {
+                            details = col.details;
+                        }
+                        console.log(result);
+                        var d = new Date(col.regDate)
+                        tr += '<tr  role="row">' +
+                            '<td >' + (i + 1) + '</td>' +
+                            ' <td><img src=' + col.image + ' height="100" width="100"></td>' +
+                            '<td >' + col.name + '</td>' +
+                            '<td >' + col.fName + '</td>' +
+                            '<td >' + col.gender + '</td>' +
+                            '<td >' + col.address + '</td>' +
+                            '<td >' + col.phone + '</td>' +
+                            '<td >' + col.email + '</td>' +
+                            '<td >' + d.toLocaleDateString() + '</td>' +
+                            '<td >' + col.idCard + '</td>' +
+                            '<td >' + col.school + '</td>' +
+                            '<td >' + col.className + '</td>' +
+                            ' <td  class="@ViewBag.Edit"><button type="button" onclick="fnEditStudent(' + col.studentId + ',\'' + col.image + '\',\'' + col.name + '\',\'' + col.fName + '\',\'' + col.gender + '\',\'' + col.address + '\',\'' + col.phone + '\',\'' + col.email + '\',\'' + col.idCard + '\',\'' + col.school + '\')" class="btn btn-primary"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td  class="@ViewBag.Edit"><button data-toggle="modal" data-target="#classAssigning" type="button" onclick="AddStudentClassModal(' + col.studentId + ')" class="btn btn-primary"><i class="fa fa-plus"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblStudent").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblStudent>tbody").html("").html(tr);
+
+                    $("#tblStudent").DataTable({
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                        });
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+
+        var list = true;
+        function fnEditStudent(studentId  ,photo ,name ,fatherName ,gender ,address ,phone ,email ,idCardNo ,school ) {
+            //  alert(id + "," + name + "," + latinname + "," + category)
+        
+            $("#student_StudentID").val(studentId);
+            $("#student_Name").val(name);
+            $("#student_FatherName").val(fatherName);
+            $("#student_Gender").val(gender);
+            $("#student_Adress").val(address);
+            $("#student_Phone").val(phone);
+            $("#student_Email").val(email);
+            $("#student_idCardNumber").val(idCardNo);
+            $("#student_School").val(school);
+
+            $("#browseImg").attr("src", photo);
+            $("#student_defalut").val(photo);
+
+            $("#student_oldEmail").val(email);
+            $("#btnSubmitEmployee").text("Edit");
+
+            $("#divInput").animate({
+                left: '250px',
+                opacity: '0.9',
+
+            }).show(400);
+
+
+            $("#divTable").animate({
+
+            }).hide(400);
+
+            $("#btnList").text("Students List")
+            list = true;
+
+        }
+
+    </script>
+
+    @* show and hide tables code *@
+    <script>
+        $("#browseCancel").click(function () {
+
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#browseInput").val("");
+            $("#employee_defalut").val("/images/StaticImages/browse.png");
+
+
+        })
+
+        $("#btnReset").click(function () {
+
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#browseInput").val("");
+            $("#btnSubmitEmployee").text("Register")
+            $("#frmEmployee")[0].reset();
+
+
+        })
+
+        $("#btnList").click(function () {
+            if (list) {
+
+                $("#divInput").animate({
+                    left: '250px',
+                    opacity: '0.9',
+
+                }).hide(400);
+
+                $("#divTable").animate({
+
+                }).show(400);
+                $("#divTable").removeClass("d-none")
+
+                $("#btnList").text("Student Registration")
+                list = false;
+
+
+            } else {
+                $("#divInput").animate({
+                    left: '250px',
+                    opacity: '0.9',
+
+                }).show(400);
+
+
+                $("#divTable").animate({
+
+                }).hide(400);
+
+                $("#btnList").text("Students List")
+                list = true;
+            }
+
+        });
+    </script>
+
+}

@@ -1,0 +1,493 @@
+﻿
+@model AllViewModel
+
+@{
+    ViewData["Title"] = "Student Registration Form";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#attendance").addClass("active")</script>
+
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorize
+
+@if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+
+    @await Html.PartialAsync("AccessDeniedPartial")
+
+
+    ViewBag.view = "d-none";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+
+@if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    //  ViewBag.Delete = "";
+}
+
+<div class=" row">
+    
+</div>
+
+<div id="div1" class="container-fluid card  @ViewBag.view">
+
+    <div class="card col-md-12 ">
+        <div class="card-header row ">
+            <div class="col-md-9">
+                <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+                    Student Attendance Form
+                </h2>
+            </div>
+
+            <div class="col-md-3" style="text-align:left">
+                <button id="btn" class="btn btn-info ">Show Attendance Record</button>
+            </div>
+        </div>
+
+        <section id="divInput" style="">
+
+            @Html.AntiForgeryToken()
+
+
+            <form asp-controller="Student" asp-action="AddStudentMarks" data-ajax="true" data-ajax-success="fnMarksSuccess(data)" method="post" id="frmStudentMark">
+
+
+                <hr />
+                <div class="col-md-12">
+                    <input hidden asp-for="exam.StudentId" value="0" />
+
+                    <div class="col-md-12 row">
+                        <div class="form-group col-md-4">
+                            <label asp-for="exam.ClassId" class=""></label>
+                            <select id="ClassesOfStudents" asp-for="exam.ClassId" style="height:45px;" onchange="loadStudents()" class="form-control " asp-items="@ViewBag.Classes">
+                                <option>Select Class</option>
+                            </select>
+                            <span asp-validation-for="exam.ExamTypeId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </form>
+
+        </section>
+        <section id="divTable" style="">
+
+            <table class="table  table-striped table-condensed table-bordered dataTables_scrollHead" id="tblStudent">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+                        <th style="max-width:1%;">#</th>
+                        <th class="col-md-1">Image</th>
+                        <th class="col-md-1">Name</th>
+                        <th class="col-md-1">F/Name</th>
+                        @*<th style="max-width:1%;" class=" @ViewBag.Edit">Edit</th>*@
+                        <th style="max-width:1%;" class="@ViewBag.Edit">Situation</th>
+                    </tr>
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+        </section>
+    </div>
+    <div id="div2" class="card col-md-12" style="display:none">
+
+        <div class="card-header ">
+            <h4 class="card-title "><strong>Show Attendance Record </strong></h4>
+            <hr />
+        </div>
+        <div class="card-body">
+            <div id="divAllAttendance">
+                <div class="col-md-12 row">
+                    <div class="form-group col-md-4">
+                        <label asp-for="exam.ClassId" class=""></label>
+                        <select id="attendanceOfAllStudent" asp-for="exam.ClassId" style="height:45px;" onchange="loadAllAttendance()" class="form-control " asp-items="@ViewBag.Classes">
+                            <option>Select Class</option>
+                        </select>
+                        <span asp-validation-for="exam.ExamTypeId" class="text-danger"></span>
+                    </div>
+                </div>
+                <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead " id="tblAllAttendance">
+                    <thead class="scrollable-container ps--scrolling-x">
+                        <tr role="row">
+                            <th style="max-width:20px;">#</th>
+                            <th class="">Image</th>
+                            <th class="">Student</th>
+                            <th class="">F/Name</th>
+                            <th class="">Total Credit Hours</th>
+                            <th class="">Attended</th>
+                            <th class="">Absent</th>
+                            <th class="">Leave</th>
+                            <th class="">Attended %</th>
+                            <th class="">Absent %</th>
+                            <th class="">Leave %</th>
+                            <th class="">Detile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <br /><br />
+            <div class="d-none" id="div3">
+                <div class="text-center alert alert-info">
+                    <p style="font-size:xx-large" id="lblStudent" class="text-capitalize font-italic"></p>
+                </div>
+                <div class="col-md-6 offset-3">
+                    <table class="table table-responsive table-striped table-bordered" id="tblSingleAttendance">
+                        <thead class="">
+                            <tr>
+                                <th>#</th>
+                                <th class="col-md-5">Attendance Date</th>
+                                <th class="col-md-5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+
+@*<form data-ajax="true" asp-action="DeleteExamType" data-ajax-method="post" asp-controller="Student" data-ajax-success="deleted(data)">
+        <input hidden id="deleteId" asp-for="examType.ExamTypeId" />
+        <button type="submit" class="d-none" id="btnDelete"></button>
+    </form>*@
+
+
+<form data-ajax="true" asp-action="FetchStudents" data-ajax-method="post" asp-controller="Student" data-ajax-success="deleted(data)">
+    <input hidden id="deleteId" asp-for="examType.ExamTypeId" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+<input type="hidden" name="name" id="rowValue" value="" />
+
+@* ////////////////////////  MY needed view  /////////// *@
+<form data-ajax="true" asp-action="AssingAttendance" data-ajax-method="post" asp-controller="Attendance" data-ajax-success="AttendanceSuccess(data)">
+    <div class="d-none">
+        <input type="text" name="attStudentID" id="attStudentID" />
+        <input type="text" name="attClassID" id="attClassID" />
+        <input type="text" name="attState" id="attState" />
+        <input type="text" name="saveOrEdit" value="1" id="saveOrEdit" />
+        <button type="submit" class="d-none" id="btnAssignAttendance"></button>
+    </div>
+
+</form>
+@* /////////////////////////////  Fetching Selected student attendance in detile ////// *@
+<form data-ajax="true" asp-action="attendanceOfSelectedStudent" data-ajax-method="post" asp-controller="Attendance" data-ajax-success="fetchDetiledAttendance(data)">
+    <input hidden id="studentIdForAttendance" name="studentIdForAttendance" />
+    <input hidden id="classIdForAttendance" name="classIdForAttendance" />
+    <button type="submit" class="d-none" id="btnFetchDetiledAttendance"></button>
+</form>
+<input hidden id="stdId" />
+<input hidden id="inputAttendance" value="Attendance" />
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        $(document).ready(function () {
+            //   $("#frmEmployee")[0].reset();
+            //$("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            //$("#divSuccess").delay(6000).fadeOut();
+        })
+    </script>
+    @* ////////////////////  My script //////// *@
+    <script>
+     function loadStudents() {
+        $.ajax({
+            url: "/Attendance/FetchStudentsForAttendance/?stdClassId=" + $("#ClassesOfStudents :selected").val() + "",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+            success: function (result) {
+                    var tr = "";
+                    var dropdownHide = "";
+                    var btnHide = "";
+                    var iconClass = "";
+                    var btnClass = "";
+                    $.each(result, function (i, col) {
+                      //  var details = "";
+
+                        //if (col.details == "null") {
+                        //    details = "";
+                        //}
+                        //else {
+                        //    details = col.details;
+                        //}
+                        if (col.assignedAttendance == null) {
+
+                            btnHide = "d-none";
+                        }
+                        else {
+                            dropdownHide = "d-none";
+                            if (col.assignedAttendance.status == "Present") {
+                                iconClass = "fa fa-check";
+                                btnClass = "btn btn-success";
+                            }
+                            else if (col.assignedAttendance.status == "Absent") {
+                                iconClass = "fa fa-times";
+                                btnClass = "btn btn-danger";
+                            }
+                            else {
+                                iconClass = "fa fa-check";
+                                btnClass = "btn btn-warning";
+                            }
+                        }
+                            tr += '<tr  role="row">' +
+                                         '<td>' + (i + 1) + '</td>' +
+                                         ' <td><img src=' + col.image + ' height="100" width="100"></td>' +
+                                         '<td>' + col.name + '</td>' +
+                                '<td>' + col.fName + '</td>' +
+                                ' <td  class="@ViewBag.Edit col-md-4">' +
+                                       ' <div class="col-md-12 row">'+
+                                '  <div class="col-md-8">' +
+                                '<select id="dropdown' + '' + col.studentId + '" class="form-control ' + dropdownHide + '" onchange="attendanceState(' + col.studentId + ',\'' + col.classId + '\')" style="width:30%">' +
+                                                  '   <option> Select State</option >' +
+                                                  '    <option value="Present">Present</option>' +
+                                                  '    <option value="Absent">Absent</option>' +
+                                                  '    <option value="Leave">Leave</option>' +
+                                '</select>' +
+                                '<button id="btn' + '' + col.studentId + '" class="' + btnHide + ' ' + btnClass + '"><i id="icon' + '' + col.studentId + '" class="' + iconClass + '"></i></button>' +
+                                          '  </div>'+
+                                '  <div class="col-md-4 ' + btnHide + '" id="edit' + '' + col.studentId + '">' +
+                                ' <button class="btn btn-info" onClick="editAttendance(' + col.studentId + ',\'' + col.name + '\',\'' + col.className + '\',\'' + col.classId + '\')"><i class="fa fa-edit"></i><lable  id="lbledit' + '' + col.studentId + '">Edit</lable></button>' +
+                                           ' </div>'+
+                                      '  </div>'+
+                                    '</td>';
+
+                                '</tr>';
+                        dropdownHide = "";
+                        btnHide = "";
+                        iconClass = "";
+                        btnClass = "";
+                    })
+                    var table = $("#tblStudent").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblStudent>tbody").html("").html(tr);
+
+                    $("#tblStudent").DataTable({
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                    });
+            },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+        })
+     }
+    function attendanceState(studentId, classId) {
+
+        if ($("#inputAttendance").val() == "Attendance") {
+            $("#saveOrEdit").val(1);
+        }
+        else {
+            $("#saveOrEdit").val(0);
+        }
+
+        $("#attStudentID").val(studentId);
+        $("#attClassID").val(classId);
+        $("#attState").val($("#dropdown" + studentId).val());
+        $("#btnAssignAttendance").trigger("click");
+    }
+    function editAttendance(studentId) {
+        $("#dropdown" + studentId).removeClass("d-none");
+        $("#btn" + studentId).addClass("d-none");
+        $("#inputAttendance").val("editAttendance");
+    }
+    function AttendanceSuccess(data) {
+        if (data.state == "Present") {
+            $("#btn" + data.studentId).removeClass("btn btn-warning");
+            $("#btn" + data.studentId).removeClass("btn btn-danger");
+            $("#btn" + data.studentId).addClass("btn btn-success");
+
+            $("#icon" + data.studentId).removeClass("fa fa-times");
+            $("#icon" + data.studentId).addClass("fa fa-check");
+
+        }
+        else if (data.state == "Absent") {
+            $("#btn" + data.studentId).removeClass("btn btn-warning");
+            $("#btn" + data.studentId).removeClass("btn btn-success");
+            $("#btn" + data.studentId).addClass("btn btn-danger");
+
+            $("#icon" + data.studentId).removeClass("fa fa-check");
+            $("#icon" + data.studentId).addClass("fa fa-times");
+        }
+        else {
+            $("#btn" + data.studentId).removeClass("btn btn-success");
+            $("#btn" + data.studentId).removeClass("btn btn-danger");
+            $("#btn" + data.studentId).addClass("btn btn-warning");
+
+            $("#icon" + data.studentId).removeClass("fa fa-times");
+            $("#icon" + data.studentId).addClass("fa fa-check");
+        }
+        $("#dropdown" + data.studentId).addClass("d-none");
+        $("#btn" + data.studentId).removeClass("d-none");
+        $("#edit" + data.studentId).removeClass("d-none");
+    }
+
+    function loadAllAttendance() {
+          $.ajax({
+              url: "/Attendance/attendanceOfAllStudent/?stdClassId=" + $("#attendanceOfAllStudent :selected").val() + "",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+            success: function (result) {
+                var tr = "";
+                var attendedPercentage = 0.0;
+                var absentPercentage = 0.0;
+                var leavePercentage = 0.0;
+                $.each(result, function (i, col) {
+                    attendedPercentage = (100 * col.totalAttended) / col.totalCredit;
+                    leavePercentage = (100 * col.totalLeave) / col.totalCredit;
+                    absentPercentage = (100 * col.totalAbsent) / col.totalCredit;
+                            tr += '<tr  role="row">' +
+                                    '<td>' + (i + 1) + '</td>' +
+                                    ' <td><img src=' + col.image + ' height="100" width="100"></td>' +
+                                    '<td>' + col.name + '</td>' +
+                                    '<td>' + col.fName + '</td>' +
+                                    '<td>' + col.totalCredit + '</td>' +
+                                '<td>' + col.totalAttended + '</td>' +
+                                '<td>' + col.totalAbsent + '</td>' +
+                                    '<td>' + col.totalLeave + '</td>' +
+                                    
+                                    '<td>' + attendedPercentage.toFixed(2) + '%</td>' +
+                                    '<td>' + absentPercentage.toFixed(2) + '%</td>' +
+                                '<td> ' + leavePercentage.toFixed(2) + '% </td>' +
+                                '<td> <button class="btn btn-info" onClick="fetchSelectedStudentAttendance(' + col.studentId + ',\'' + col.name + '\',\'' + col.className + '\',\'' + col.classId + '\')"><i class="fa fa-info"></i></button> </td>' +
+                                '</tr>';
+                })
+                     var table = $("#tblAllAttendance").dataTable();
+                     table.fnDestroy();
+
+                     $("#tblAllAttendance>tbody").html("").html(tr);
+
+                $("#tblAllAttendance").DataTable({
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                });
+            },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+        })
+    }
+    function fetchSelectedStudentAttendance(studentId, name, className, classId) {
+
+        $("#studentIdForAttendance").val(studentId);
+        $("#classIdForAttendance").val(classId);
+        $("#btnFetchDetiledAttendance").trigger("click");
+        $("#lblStudent").text(name + " Attendance Detile");
+        //alert("fetch");
+
+
+      }
+
+
+        function fetchDetiledAttendance(data) {
+            $("#div3").removeClass("d-none");
+              var row = "";
+         //   console.log(data);
+           $.each(data, function (i, col) {
+               row += '<tr  role="row">' +
+                         '<td class="">' + (i + 1) + '</td>' +
+                         '<td class="col-md-5">' + col.date + '</td>' +
+                         '<td class="col-md-5">' + col.status + '</td>' +
+                       '</tr>';
+           })
+           var table = $("#tblSingleAttendance").dataTable();
+            table.fnDestroy();
+
+            $("#tblSingleAttendance>tbody").html("").html(row);
+
+           $("#tblSingleAttendance").DataTable({
+                     "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                     stateSave: true
+           });
+       }
+    </script>
+
+    @* show and hide tables code *@
+    <script>
+        $("#btnReset").click(function () {
+            $("#exam_ClassId").html('');
+        })
+
+        var type = true;
+        $("#btn").click(function () {
+            if (type) {
+
+                $("#div2").show();
+                $("#divInput").hide();
+                $("#divTable").hide();
+                type = false;
+                $("#btn").text("Attendance");
+
+            } else {
+
+                $("#divInput").show();
+                $("#divTable").show();
+                $("#div2").hide();
+                type = true;
+
+                $("#btn").text("Show Attendance Record");
+            }
+
+        });
+    </script>
+    @* Exam type script functions *@
+    <script>
+        $("#btnAddExamType").click(function () {
+            $("#btnSubmitExamType").text("Save");
+            $("#btnCloseExamType").trigger("click");
+        })
+    </script>
+}

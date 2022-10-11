@@ -1,0 +1,135 @@
+﻿
+@{
+    ViewData["Title"] = "ExpiredItems";
+
+}
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#expiredItemActive").addClass("active")</script>
+
+<style>
+    .dt-buttons {
+        float: left;
+    }
+</style>
+<div class="col-md-12 " id="purchaseList">
+    <section>
+        <div class="row">
+            <div class="card">
+                <div class="card-header ">
+                    <h2 class="card-title "><strong>د تاریخ تېرو اجناسو لېست</strong></h2>
+                    <hr />
+                    <a class="heading-elements-toggle">
+                        <i class="fa fa-ellipsis-v font-medium-3"></i>
+                    </a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <table class="table  table-responsive table-bordered dataex-fixh-basic dataTable" id="tblExpiredItems">
+                        <thead>
+                            <tr role="row">
+                                <th>شماره</th>
+                                <th>جنس</th>
+                                <th>لاتین نوم</th>
+                                <th>کمپنی</th>
+                                <th>هېواد</th>
+                                <th>پیرلو بیه</th>
+                                <th>پلور بیه</th>
+                                <th>تعداد</th>
+                                <th>پیسو ډول</th>
+                                <th>جوړولو نیټه</th>
+                                <th>ختم نیټه</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblBody">
+                            @{
+                                var count = 1;
+                            }
+                            @foreach (var item in ViewBag.expiredItems)
+                            {
+                                //int count = 1;
+                                //int assign = 1;
+                                //if(count != 1)
+                                //{
+                                //    count = assign;
+                                //}
+
+                                <tr>
+                                    <td>@count</td>
+                                    <td>@item.Item</td>
+                                    <td>@item.LatineName</td>
+                                    <td>@item.Company</td>
+                                    <td>@item.Country</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@item.PurchasePrice</td>
+                                    <td>@item.SalePrice</td>
+                                    <td>@item.Currency</td>
+                                    <td>@Convert.ToDateTime(item.ManufactureDate)</td>
+                                    <td>@Convert.ToDateTime(item.ExpireDate)</td>
+                                </tr>
+                                count++;
+                            }
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+</div>
+
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+    $(document).ready(function () {
+        var show = true;
+        if (show) {
+            show = false;
+            $("#tblExpiredItems").DataTable({
+                stateSave: true,
+                dom: 'Blfrtip', buttons: ['excel', 'print', 'copy'],
+
+                scrollY: "400px",
+                scrollX: true,
+                "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "ټول"]],
+                "pageLength": 5,
+                "language": {
+                    "emptyTable": "په جدول کې معلومات شتون نه لري",
+                    "info": "د <b>( _START_  )</b> تر <b>( _END_  )</b> د <b>( _TOTAL_ )</b> ریکاروډونو څخه.",
+                    "infoFiltered": "( <b>( _MAX_ )</b> ریکارډونه شتون لرې )",
+                    "infoPostFix": "",
+
+                    "lengthMenu": "ښودل_MENU_ ریکارډونو",
+                    "search": "پلټنه<span id='tblSearch' class='fa fa-search'></span> ",
+                    "searchPlaceholder": "پلټنه",
+                    "zeroRecords": "پدی نوم هیڅ ریکارډ پیدا نشو ",
+                    "paginate": {
+                        "first": "لومړۍ پاڼه",
+                        "previous": "مخکې",
+                        "next": "وروسته",
+                        "last": "پای"
+                    },
+                },
+            });
+            $(".buttons-print").text("چاپ")
+            $(".buttons-copy").text("کاپي")
+            $(".buttons-excel").text("ایکسل")
+            $('.buttons-copy, .buttons-print, .buttons-excel').addClass('btn btn-primary ');
+        }
+
+    })
+</script>

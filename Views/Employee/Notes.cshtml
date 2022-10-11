@@ -1,0 +1,165 @@
+﻿@using System.Collections.Generic
+@using System.Linq
+@using Microsoft.AspNetCore.Http
+@*@using Microsoft.AspNetCore.Http.Authentication*@
+@model NoteViewModel
+@{
+    ViewData["Title"] = "Notes";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+<div class="row">
+    <div class="col-md-12 ">
+        <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+            Note Form
+        </h2>
+        <hr />
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body card-dashboard">
+                <section>
+                    @Html.AntiForgeryToken()
+
+                    <br />  <br />  <br />
+                    <br />  <br />
+                    <form data-ajax="true" asp-controller="Employee" asp-action="AddNote"  data-ajax-success="frmSuccess(data)" data-ajax-method="post" id="frmnotes">
+                        <hr />
+                        <input hidden asp-for="NoteId" class="form-control" value="0" />
+                        <div class="form-group">
+
+                            <label asp-for="Note" class=""></label>
+                            <textarea asp-for="Note"  placeholder="Type your note !!!" class="form-control"></textarea>
+                            <span asp-validation-for="Note" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="TargetDate" class=""></label>
+                            <input asp-for="TargetDate" asp-format="0:yyyy-MM-dd" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="TargetDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="RemindDate" class=""></label>
+                            <input asp-for="RemindDate" asp-format="0:yyyy-MM-dd" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="RemindDate" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <button type="reset" id="btnreset" class="btn btn-warning btn-icon-md">Clear</button>
+                            <button type="submit" id="btnsubmit" class="btn btn-primary btn-icon-md">Add note</button>
+
+                        </div>
+
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 " style="margin:0px;">
+        <div class="card">
+            <div class="card-header ">
+                <h4 class="card-title "><strong>Note list</strong></h4>
+                <hr />
+                <a class="heading-elements-toggle">
+                    <i class="fa fa-ellipsis-v font-medium-3"></i>
+                </a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                    </ul>
+                </div>
+            </div>
+            <div class="card-content  collapse show">
+                <div class="card-body">
+                    <table class="table  table-bordered dataex-fixh-basic dataTable" id="tbl">
+                        <thead class="">
+                            <tr role="row">
+
+                                <th class="col-md-3">Note</th>
+                                <th class="col-md-3"> Note Date</th>
+                                <th class="col-md-3">  Remind Date</th>
+                                <th class="col-md-3">  Edit</th>
+                                <th class="col-md-3">  Delete </th>
+                        </thead>
+
+                        <tbody></tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+    $(document).ready(function () {
+        LoadNotes();
+    })
+    var show = true;
+    function LoadNotes() {
+        $.ajax({
+            url: '/Employee/FetchNotes/',
+            type: 'GET',
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (customers) {
+                var Cus = "";
+                $.each(customers, function (i, col) {
+                    Cus += ' <tr>';
+                    Cus += '      <td class="col-md-3"> ' + col.note + ' </td>';
+                    Cus += '     <td  class="col-md-3"> ' + col.targetdateShow + '</td>';
+                    Cus += '     <td  class="col-md-2">' + col.reminddateShow + '  </td>';
+                    Cus += '     <td  class="col-md-2"> <button class="btn btn-primary" onclick="passValue(' + col.noteid + ',\'' + col.note + '\',\'' + col.targetdate + '\',\'' + col.reminddate + '\')"><i class="ft-edit"></i></button></td>';
+                    Cus += "      <td><form data-ajax='true' data-ajax-url='/Employee/DeleteNote' data-ajax-success='DeleteNote(data)' data-ajax-method='post'> <input hidden name='NoteId' value='" + col.noteid + "' /> <button type='submit' class='btn btn-danger'><i class='ft-trash'></i></button></form></td> ";
+                    Cus += '      </tr>';
+                });
+                var table = $("#tbl").dataTable();
+                table.fnDestroy();
+                $("#tbl>tbody").html("").html(Cus);
+                $("#tbl").DataTable({
+                    "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                        stateSave: true                                          
+                    });                
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        })
+    }
+
+    function passValue(noteid, note, targetdate, reminddate)
+    {
+
+        $("#Note").val(note);
+        $("#NoteId").val(noteid);
+        $("#TargetDate").val(targetdate);
+        $("#RemindDate").val(reminddate);
+       // $("#Address").val(address);
+        $("#btnsubmit").text("Update");
+    }
+    function frmSuccess(data) {
+        $("#btnsubmit").text("Add Note");
+       
+        toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+        $("#frmnotes")[0].reset();
+        LoadNotes();
+    }
+    function DeleteNote(data) {
+        toastr.option
+        toastr.warning(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+        $("#frmnotes")[0].reset();
+        LoadNotes();
+    }
+    $("#btnreset").click(function () {      
+        $("#btnsubmit").text("Add Note")
+
+    })
+
+</script>
+
+

@@ -1,0 +1,118 @@
+﻿
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#studentExamInfo").addClass("active")</script>
+
+<div id="div1" class="container-fluid card  @ViewBag.view">
+
+    <div class="card col-md-12">
+        <div class="card-header ">
+            <h4 class="card-title ">
+                <strong></strong>
+            </h4>
+            <hr />
+            <a class="heading-elements-toggle">
+                <i class="fa fa-ellipsis-v font-medium-3"></i>
+            </a>
+            <div class="heading-elements">
+                <ul class="list-inline mb-0">
+
+                    <li>
+                        <a data-action="expand"><i class="ft-maximize"></i></a>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+        <section id="divMarksInfo">
+            <div class="col-md-12  ">
+                <div class="card card border-teal border-lighten-2">
+                    <div class="text-center">
+
+                        <div class="card-body">
+                            <img id="studentImageExam" src="" class="rounded-circle width-150  height-150" alt="Card image">
+                        </div>
+                        <div class="card-body">
+                            <h4 class="card-title" id="studentNameExam"> </h4>
+                            <h6 class="card-subtitle text-muted" id="studentPhone"></h6>
+                        </div>
+
+                    </div>
+                    <div class="list-group list-group-flush text-center" id="studentExamResult">
+                        <a href="#" class="list-group-item"><i class="ft-file-text"></i> </a>
+                        <div class="col-md-12  row">
+                            
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function () {
+            fnStudentExamDetails();
+        })
+        function fnStudentExamDetails() {
+            $.ajax({
+                url: "/Student/FetchLogedInStudentExamInfo/",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                success: function (result) {
+
+                    var tr = "";
+                    var res = "";
+                    var color = "";
+                    if (result == 0) {
+                        toastr.warning("Your not participated in any exam.", '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+
+                    } else {
+                        $.each(result, function (i, col) {
+
+                            if (col.totalMarks < 50) {
+                                res = "Fail";
+                                color = "#FF7588";
+                            } else {
+                                res = "Passed";
+                                color = "#00B5B8";
+                            }
+                            tr += ' <a href="#" class="list-group-item font-weight-bold font-medium-4 text-warning"><i class="ft-file-text" ></i> ' + col.examType + ', Date : ' + col.dateShow + '</a>               ' +
+                                ' <div class="col-md-12  row" >                                                                  ' +
+                                '   <a href="#" class="list-group-item" > <i class="ft-edit"> Subjet : </i> ' + col.subject + '</a >' +
+                                '   <a href="#" class="list-group-item"><i class="ft-check-square"> Subjet Marks : </i> ' + col.subjectMarks + '</a>  ' +
+                                '   <a href="#" class="list-group-item"><i class="ft-check-square"> Obtain Marks :</i> ' + col.obtainMarks + '</a>    ' +
+                                '   <a href="#" class="list-group-item"> <i class="ft-check-square"> Helped Marks :</i> ' + col.helpedMarks + '</a>    ' +
+                                '   <a href="#" class="list-group-item"> <i class="ft-check-square"> Total Marks :</i> ' + col.totalMarks + '</a>    ' +
+                                ' <a href="#" class="list-group-item" style="color:' + color + '"> <i class="ft-check-square" style="color:' + color + '"> Result :</i> ' + res + '</a>' +
+                                //'<a href="#" class="list-group-item"> <i class="ft-check-square"> Position :</i> 1</a>'+
+                                ' </div>';
+                            $("#studentNameExam").text(col.name)
+                            $("#studentPhone").text(col.phone)
+                            $("#studentImageExam").attr("src", col.photo);
+                        })
+
+                        $("#studentExamResult").html('').append(tr);
+                        $("#studentNameExam").text(result.name)
+                        $("#studentPhone").text(result.phone)
+                        $("#studentImageExam").attr("src", result.photo);
+                        $("#divMarksInfo").show();
+                        $("#divInput").hide();
+
+                    }
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+
+            })
+        }
+    </script>
+}

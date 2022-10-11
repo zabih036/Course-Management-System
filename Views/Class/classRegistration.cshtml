@@ -1,0 +1,173 @@
+﻿@model classRegistrationViewModel
+@{
+    ViewData["Title"] = "Class";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#addClass").addClass("active")</script>
+
+<div class="row">
+    <div class="col-md-12 ">
+        <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+            Class Registration Form
+        </h2>
+        <hr />
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header ">
+                <h4 class="card-title "><strong>Register New Class</strong></h4>
+                <hr />
+                <a class="heading-elements-toggle">
+                    <i class="fa fa-ellipsis-v font-medium-3"></i>
+                </a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body card-dashboard">
+                <section>
+                    @Html.AntiForgeryToken()
+
+                    <br />
+
+                    <form data-ajax="true" asp-controller="Class" asp-action="Registration" data-ajax-success="frmSuccess(data)" data-ajax-method="post" id="frmnotes">
+
+                        <input hidden asp-for="classNameId" class="form-control" value="0" />
+                        <br /><br />
+                        <div class="form-group">
+                            <label asp-for="className" class=""></label>
+                            <input asp-for="className" placeholder="Enter Class Name !!!" class="form-control">
+                            <span asp-validation-for="className" class="text-danger"></span>
+                        </div>
+                        <br /><br />
+                        <div class="form-group">
+                            <label asp-for="department" class=""></label>
+                            <select asp-for="department" asp-items="@ViewBag.department" class="form-control" style="height:50px;">
+                                <option value="">Select Department </option>
+                            </select>
+                            <span asp-validation-for="department" class="text-danger"></span>
+                        </div>
+                        <br /><br />
+                        <div class="form-group">
+                            <button type="reset" id="btnreset" class="btn btn-warning btn-icon-md">Clear</button>
+                            <button type="submit" id="btnsubmit" class="btn btn-primary btn-icon-md">Add Class</button>
+
+                        </div>
+                        <br /><br /><br /><br /><br />
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7 " style="margin:0px;">
+        <div class="card">
+            <div class="card-header ">
+                <h4 class="card-title "><strong>Classes List</strong></h4>
+                <hr />
+                <a class="heading-elements-toggle">
+                    <i class="fa fa-ellipsis-v font-medium-3"></i>
+                </a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                    </ul>
+                </div>
+            </div>
+            <div class="card-content  collapse show">
+                <div class="card-body">
+                    <table class="table  table-bordered dataex-fixh-basic dataTable" id="tbl">
+                        <thead class="">
+                            <tr role="row">
+
+                                <th class="col-md-3">#</th>
+                                <th class="col-md-3">Class Name</th>
+                                <th class="col-md-3">Department</th>
+                                <th class="col-md-3">Edit</th>
+                                <th class="col-md-3">Delete </th>
+                        </thead>
+
+                        <tbody></tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+    $(document).ready(function () {
+        loadClasses();
+    })
+    var show = true;
+    function loadClasses() {
+
+        $.ajax({
+            url: '/class/fetchClasses/',
+            type: 'GET',
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (classes) {
+                var Cla = "";
+                $.each(classes, function (i, col) {
+                    Cla += ' <tr>';
+                    Cla += '      <td class="col-md-3"> ' + (i + 1) + ' </td>';
+                    Cla += '      <td class="col-md-3"> ' + col.className + ' </td>';
+                    Cla += '     <td  class="col-md-3"> ' + col.department + '</td>';
+                    Cla += '     <td  class="col-md-2"> <button class="btn btn-primary" onclick="passValue(' + col.classNameId + ',\'' + col.className + '\',\'' + col.departmentId + '\')"><i class="ft-edit"></i></button></td>';
+                    Cla += "      <td><form data-ajax='true' data-ajax-url='/Class/deleteClass' data-ajax-success='deleteClass(data)' data-ajax-method='post'> <input hidden name='classId' value='" + col.classNameId + "' /> <button type='submit' class='btn btn-danger'><i class='ft-trash'></i></button></form></td> ";
+                    Cla += '      </tr>';
+                });
+                var table = $("#tbl").dataTable();
+                table.fnDestroy();
+                $("#tbl>tbody").html("").html(Cla);
+                $("#tbl").DataTable({
+                    "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                    stateSave: true
+                });
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        })
+    }
+
+    function passValue(classNameId, className, departmentId) {
+
+        $("#classNameId").val(classNameId);
+        $("#className").val(className);
+        $("#department").val(departmentId);
+        $("#btnsubmit").text("Update");
+    }
+    function frmSuccess(data) {
+        $("#btnsubmit").text("Add Class");
+        toastr.option
+        toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+        $("#frmnotes")[0].reset();
+        loadClasses();
+    }
+    function deleteClass(data) {
+        toastr.option
+        toastr.warning(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+        $("#frmnotes")[0].reset();
+        loadClasses();
+    }
+    $("#btnreset").click(function () {
+        $("#btnsubmit").text("Add Class")
+
+    })
+
+</script>

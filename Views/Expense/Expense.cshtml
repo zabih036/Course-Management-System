@@ -1,0 +1,541 @@
+﻿@model AllViewModel
+
+
+@{
+    ViewData["Title"] = "Expense";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#expenseActive").addClass("active")</script>
+
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorize
+
+@if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+
+    @await Html.PartialAsync("AccessDeniedPartial")
+
+
+    ViewBag.View = "d-none";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+
+@if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+    ViewBag.View = "";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+{
+    ViewBag.View = "";
+    ViewBag.Insert = "";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+
+}
+
+@if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+{
+    ViewBag.View = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+{
+    ViewBag.View = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "";
+}
+
+
+<div class="row   @ViewBag.View">
+
+    <div class="col-md-12 row">
+        <div class="col-md-2" style="text-align:left">
+            <button id="btn" class="btn btn-info box-shadow-1">  Expense Type  <i class="fa fa-chevron-circle-down "></i> </button>
+        </div>
+        <div class=" col-md-8">
+            <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+                Expense form
+            </h2>
+            <hr />
+        </div>
+        <div class="col-md-2" style="text-align:right">
+            <button id="btnList" class="btn btn-info box-shadow-1"> Expense List </button>
+        </div>
+
+    </div>
+
+
+    <div class="row col-md-12">
+        <div id="div2" class="card col-md-4 " style="display:none">
+
+            <div class="card-header ">
+                <h4 class="card-title "><strong> </strong></h4>
+                <hr />
+                <a class="heading-elements-toggle">
+                    <i class="fa fa-ellipsis-v font-medium-3"></i>
+                </a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                    </ul>
+                </div>
+                <button type="button" id="btnAddExpenseType" class="btn  btn-info  @ViewBag.Insert" data-toggle="modal"
+                        data-target="#expense">
+                    Add Expense Types
+                </button>
+            </div>
+
+            <table class="table table-responsive table-striped table-condensed table-bordered dataTables_scrollHead " id="tblExpenseType">
+                <thead class="scrollable-container ps--scrolling-x">
+                    <tr role="row">
+                        <th style="max-width:20px;">#</th>
+                        <th class="col-md-4">Expense type</th>
+                        <th class="col-md-1 @ViewBag.Edit"> Edit </th>
+                        <th class="col-md-1 @ViewBag.Delete">  Delete</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div id="div1" class="card col-md-12">
+            <div class="card-header">
+                <h3 class="card-title" id="hidden-label-form-center"><strong></strong></h3>
+                <hr />
+                <a class="heading-elements-toggle"><i class="fa fa-ellipsis-v font-medium-3"></i></a>
+                <div class="heading-elements">
+                    <ul class="list-inline mb-0">
+
+                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                    </ul>
+                </div>
+            </div>
+
+            <div id="divInput">
+                <form class="form" asp-action="SaveExpense" asp-controller="Expense" data-ajax="true" data-ajax-success="fnSuccessExpense(data)" id="frmExpense">
+                    <div class="row justify-content-md-center">
+                        <div class="col-md-6">
+                            <div class="form-body">
+                                <input hidden asp-for="expense.ExpenseId" value="0" />
+                                <div class="row">
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="" for="eventRegInput1" asp-for="expense.Expense"></label>
+                                        <input asp-for="expense.Expense" placeholder="Amount" class="form-control">
+                                        <span asp-validation-for="expense.Expense" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-12 mb-2">
+                                        <label asp-for="expense.ExpenseTypeId" class=""></label>
+                                        <select asp-for="expense.ExpenseTypeId" style="height:45px;" class="form-control" asp-items="@ViewBag.ExpenseType">
+                                            <option value="">Expense Type</option>
+                                        </select>
+                                        <span asp-validation-for="expense.ExpenseTypeId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="" asp-for="expense.ExpenseDate"></label>
+                                        <input asp-for="expense.ExpenseDate" asp-format="{0:yyyy-MM-dd}" type="datetime-local" placeholder="Expense Date" class="form-control ">
+                                        <span asp-validation-for="expense.ExpenseDate" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="" asp-for="expense.Detail"></label>
+                                        <textarea asp-for="expense.Detail" placeholder="Details " rows="3" class="form-control"></textarea>
+                                        <span asp-validation-for="expense.Detail" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions center @ViewBag.Insert">
+                        <button type="reset" id="btnreset" class="btn btn-warning mr-1">
+                            Clear
+                        </button>
+                        <button type="submit" id="btnSubmitExpense" class="btn btn-primary">
+                            ‌Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <section id="divTable" class="d-none">
+                <div class="col-md-12">
+                    <table class=" table  table-striped table-condensed table-bordered dataTables_scrollHead " id="tblExpense">
+                        <thead class="scrollable-container ps--scrolling-x" style="width:100%">
+                            <tr role="row">
+                                <th class="col-md-1">#</th>
+                                <th class="col-md-3"> Amount</th>
+                                <th class="col-md-1"> Expense Type </th>
+                                <th class="col-md-2"> Date </th>
+                                <th class="col-md-3"> Details </th>
+                                <th class="col-md-1 @ViewBag.Edit">  Edit</th>
+                            </tr>
+                        </thead>
+
+                        <tbody></tbody>
+
+                    </table>
+                </div>
+
+            </section>
+        </div>
+
+
+    </div>
+</div>
+<input type="hidden" name="name" id="rowValue" value="" />
+
+@* modal for adding expensetype *@
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="form-group">
+
+        <div class="modal fade text-left" id="expense" tabindex="-1" role="dialog" aria-labelledby="myModalLabel10"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary white">
+                        <h4 class="modal-title" id="myModalLabel100">Expense Type</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form data-ajax="true" asp-controller="Expense" asp-action="SaveExpenseType" data-ajax-success="funSuccessExpenseType(data)" data-ajax-method="post" id="frmExpenseType">
+                            <hr />
+                            <input hidden asp-for="expenseType.ExpenseTypeId" value="0" />
+                            @*<div asp-validation-summary="All" class="text-danger"></div>*@
+                            <div class="form-group">
+                                <label asp-for="expenseType.ExpenseType" class=""></label>
+                                <input asp-for="expenseType.ExpenseType" placeholder="Expense Type" class="form-control" />
+                                <span asp-validation-for="expenseType.ExpenseType" class="text-danger"></span>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn grey btn-outline-secondary" id="btnCloseExpenseType" data-dismiss="modal">Close</button>
+                                <button type="submit" id="btnSubmitExpenseType" class="btn btn-outline-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form data-ajax="true" asp-action="DeleteExpenseType" data-ajax-method="post" asp-controller="Expense" data-ajax-success="deleted(data)">
+    <input hidden id="deleteId" asp-for="expenseType.ExpenseTypeId" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        $(document).ready(function () {
+
+            loadExpense();
+        })
+    </script>
+    @* ExpenseType script functions *@
+    <script>
+
+        var update = false;
+        function LoadExpenseType() {
+
+            $.ajax({
+                url: "/Expense/LoadExpenseType/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td id=' + i + '>' + col.expenseType1 + '</td>' +
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditExpenseType(' + col.expenseTypeId + ',\'' + col.expenseType1 + '\',\'' + i + '\')" class="btn btn-primary"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td class="@ViewBag.Delete"><button type="button" onclick="fnDeleteExpenseType(' + col.expenseTypeId + ')" class="btn btn-danger"><i class="fa fa-trash-o"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblExpenseType").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblExpenseType>tbody").html("").html(tr);
+
+                    $("#tblExpenseType").DataTable({
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true,
+                            })
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function funSuccessExpenseType(data) {
+            LoadExpenseType();
+            $("#frmExpenseType")[0].reset();
+            $("#btnCloseExpenseType").trigger("click");
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            $("#btnSubmitExpenseType").text("Save ");
+        }
+
+        function EditExpenseType(id, name, rowid) {
+            $("#rowValue").val(rowid)
+
+            $("#expenseType_ExpenseType").val(name);
+            $("#expenseType_ExpenseTypeId").val(id);
+
+            $("#btnAddExpenseType").trigger("click");
+
+            $("#btnSubmitExpenseType").text("Update");
+
+            update = true;
+
+        }
+        function fnDeleteExpenseType(comId) {
+            $("#deleteId").val(comId);
+            swal({
+                title: "Do you want to delete ???",
+                text: "",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "No",
+                        value: null,
+                        visible: true,
+                        className: "",
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "Yes",
+                        value: true,
+                        visible: true,
+                        className: "",
+                        closeModal: true
+                    }
+                }
+            }).then((isConfirm) => {
+                if (isConfirm) {
+                    $("#btnDelete").trigger("click");
+                }
+            });
+
+        }
+
+        function deleted(data) {
+
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            LoadExpenseType();
+
+        }
+    </script>
+
+    @* Expense script functions *@
+    <script>
+
+        function loadExpense() {
+
+            $.ajax({
+                url: "/Expense/LoadExpense/",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+                        var d = "";
+                        if (col.detail == null) {
+                            d = "";
+
+                        } else {
+                            d = col.detail;
+
+                        }
+                        tr += '<tr role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td>' + col.expenseAmount + '</td>' +
+                            ' <td>' + col.expenseType + '</td>' +
+                            ' <td>' + col.expenseDateShow + '</td>' +
+                            ' <td>' + d + '</td>' +
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditExpense(' + col.expenseId + ',\'' + col.expenseAmount + '\',\'' + col.expenseTypeId + '\',\'' + col.expenseDate + '\',\'' + col.detail + '\')" class="btn btn-primary"><i class="fa fa-edit"></i></button></td>' +
+                             '</tr>';
+
+                    })
+
+                    var table = $("#tblExpense").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblExpense>tbody").html("").html(tr);
+
+                   $("#tblExpense").dataTable({
+                       "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                       stateSave: true,
+
+                    })
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function fnSuccessExpense(data) {
+
+
+            loadExpense();
+
+            $("#frmExpense")[0].reset();
+
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            $("#btnSubmitExpense").text("Save ");
+        }
+
+        function EditExpense(id, expense, type, date, detail) {
+            //alert(id + "," + expense + "," + type + "," + date + "," + detail)
+
+            $("#expense_ExpenseId").val(id);
+            $("#expense_Expense").val(expense);
+            $("#expense_ExpenseTypeId").val(type);
+            $("#expense_ExpenseDate").val(date);
+            $("#expense_Detail").val(detail);
+            $("#btnAddExpense").trigger("click");
+
+            $("#btnSubmitExpense").text("Update");
+
+            $("#divInput").animate({
+                left: '250px',
+                opacity: '0.9',
+
+            }).show(400);
+
+
+            $("#divTable").animate({
+
+            }).hide(400);
+
+            $("#btnList").text("Expense List")
+            list = true;
+
+        }
+
+
+    </script>
+
+    <script>
+        var type = true;
+        var list = true;
+
+        $("#btn").click(function () {
+            if (type) {
+
+                $("#div1").removeClass("col-md-12").addClass("col-md-7");
+                $("#div2").removeClass("d-none");
+                $("#div2").slideDown();
+                $("#div2").show().addClass("col-md-5 ml-0");
+                LoadExpenseType();
+                type = false;
+            } else {
+
+                $("#div1").removeClass("col-md-7 m-0").addClass("col-md-12");
+                $("#div2").addClass("d-none");
+                $("#div2").slideDown();
+                $("#div2").show().removeClass("col-md-5");
+                type = true;
+            }
+
+        });
+
+        $("#btnList").click(function () {
+            if (list) {
+
+                $("#divInput").animate({
+                    left: '250px',
+                    opacity: '0.9',
+
+                }).hide(400);
+
+
+                $("#divTable").animate({
+
+                }).show(400);
+                $("#divTable").removeClass("d-none")
+
+                $("#btnList").text("Add Expense")
+
+
+                list = false;
+            } else {
+                $("#divInput").animate({
+                    left: '250px',
+                    opacity: '0.9',
+
+                }).show(400);
+
+
+                $("#divTable").animate({
+
+                }).hide(400);
+
+                $("#btnList").text("Expense List")
+                list = true;
+            }
+
+        });
+
+        $("#btnCloseExpenseType").click(function () {
+
+            $("#frmExpenseType")[0].reset();
+            $("#btnSubmitExpenseType").text("Save")
+
+        })
+        $("#btnreset").click(function () {
+
+
+            $("#btnSubmitExpense").text("Save")
+
+        })
+
+    </script>
+}

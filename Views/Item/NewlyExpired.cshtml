@@ -1,0 +1,158 @@
+﻿
+@{
+    ViewData["Title"] = "NewlyExpired";
+   
+}
+
+<div class="col-md-12 " id="purchaseList">
+    <section>
+        <div class="row">
+
+            <div class="card">
+                <div class="card-header ">
+                    <h3 class="card-title "><strong>د نوي تاریخ تیر شویو اجناسو لېست</strong></h3>
+                    <hr />
+                    <a class="heading-elements-toggle">
+                        <i class="fa fa-ellipsis-v font-medium-3"></i>
+                    </a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+
+                        </ul>
+                    </div>
+                </div>
+              
+
+                        <div class="col-md-12">
+                            <table class="table  table-responsive table-bordered dataex-fixh-basic dataTable" id="tblExpiredItems">
+                                <thead>
+                                    <tr role="row">
+                                        <th>شماره</th>
+                                        <th>جنس</th>
+                                        <th>لاتین نوم</th>
+                                        <th>کمپنی</th>
+                                        <th>هېواد</th>
+                                        <th>پیرلو بیه</th>
+                                        <th>پلور بیه</th>
+                                        <th>تعداد</th>
+                                        <th>پیسو ډول</th>
+                                        <th>جوړولو نیټه</th>
+                                        <th>ختم نیټه</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblBody"></tbody>
+
+                            </table>
+                        </div>
+
+                
+            </div>
+        </div>
+
+    </section>
+</div>
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+
+    $(document).ready(function () {
+        showItems();
+    })
+    function showItems() {
+        $.ajax({
+            url: "/Item/showExpiredItems/",
+            type: "POST",
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (result) {
+
+                var tr = "";
+                $.each(result, function (i, col) {
+                    tr += "     <tr>";
+                    tr += "         <td>" + (i + 1) + "</td>";
+                    tr += "         <td>" + col.itemname + "</td>";
+                    tr += "         <td>" + col.latinname + "</td>";
+                    tr += "         <td>" + col.company + "</td>";
+                    tr += "         <td>" + col.country + "</td>";
+                    tr += "         <td>" + col.purchaseprice + "</td>";
+                    tr += "         <td>" + col.saleprice + "</td>";
+                    tr += "         <td>" + col.quantity + "</td>";
+                    tr += "         <td>" + col.currency + "</td>";
+                    tr += "         <td>" + col.manufacturedate + "</td>";
+                    tr += "         <td>" + col.expiredate + "</td>";
+                    tr += "     </tr>";
+                })
+                $("#tblBody").html('').html(tr);
+                var show = true;
+                if (show) {
+                    show = false;
+                    $("#tblExpiredItems").DataTable({
+                        stateSave: true,
+                        //   select: false,
+                        ordering: true,
+                        "pageLength": 5,
+                        "lengthChange": false,
+                        //"lengthMenu":[[5,10,20,-1],[10,25,50,"All"]],
+                        "language": {
+                            "emptyTable": "په جدول کې معلومات شتون نه لري",
+                            "info": "د <b>( _START_  )</b> تر <b>( _END_  )</b> د <b>( _TOTAL_ )</b> ریکاروډونو څخه."
+                            ,
+                            "pageLength": 5,
+                            "lengthChange": false,
+
+                            "infoEmpty": "",
+                            "infoFiltered": "( پیدا شوي  <b> ( _MAX_ ) </b>  ټول ریکارډونه)",
+                            "infoPostFix": "",
+                            "lengthMenu": [[5, 10, 20, -1], [10, 25, 50, "All"]],
+                            "search": "پلټنه <span class='glyphicon glyphicon-search'></span>",
+                            "searchPlaceholder": "پلټنه",
+                            "zeroRecords": "پدی نوم هیڅ ریکارډ پیدا نشو ",
+                            "paginate": {
+                                "first": "لومړۍ پاڼه",
+                                "previous": "مخکې",
+                                "next": "وروسته",
+                                "last": "پای"
+                            },
+                        },
+                    });
+                }
+
+                removeExpiredItems();
+            },
+            error: function (err) {
+                console.log(err);
+            },
+            complete: function () {
+
+            }
+
+        })
+
+    }
+    function removeExpiredItems() {
+        $.ajax({
+            url: "/Item/RemoveExpiredItems/",
+            type: "POST",
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (result) {
+                toastr.option
+                toastr.success(result, '', { "progressBar": true, positionClass: 'toast-top-left', containerId: 'toast-top-left' });
+                $("#expiredNotification").removeClass("d-none");
+            },
+            error: function (err) {
+                console.log(err);
+            },
+            complete: function () {
+            }
+        })
+    }
+
+</script>

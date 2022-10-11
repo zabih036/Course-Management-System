@@ -1,0 +1,759 @@
+﻿
+@model AllViewModel
+
+@{
+    ViewData["Title"] = "Student Registration Form";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#exam").addClass("active")</script>
+
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorize
+
+@if (!(await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+
+    @await Html.PartialAsync("AccessDeniedPartial")
+
+
+    ViewBag.view = "d-none";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+
+@if ((await authorize.AuthorizeAsync(User, "ViewRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "d-none";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "InsertRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Delete = "d-none";
+    ViewBag.Edit = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    ViewBag.Delete = "d-none";
+}
+
+@if ((await authorize.AuthorizeAsync(User, "DeleteRolePolicy")).Succeeded)
+{
+    ViewBag.view = "";
+    ViewBag.Insert = "";
+    ViewBag.Edit = "";
+    //  ViewBag.Delete = "";
+}
+
+<div class=" row">
+
+    <div class="col-md-2" style="text-align:left">
+        <a asp-action="StudentRegistration" asp-controller="Student" class="btn btn-info box-shadow-1"> Add New Student </a>
+    </div>
+
+    <div class="col-md-8">
+        <h2 class="text-center alert bg-yellow bg-darken-2 box-shadow-1" style="background-color:#ffffff;">
+            Student Exam
+        </h2>
+    </div>
+
+    <div class="col-md-2" style="text-align:left">
+        <button id="btn" class="btn btn-info box-shadow-1">Add Exam Type  </button>
+    </div>
+
+    <hr />
+
+</div>
+
+<div id="div1" class="container-fluid card  @ViewBag.view">
+
+    <div class="card col-md-12">
+        <div class="card-header ">
+            <h4 class="card-title ">
+                <strong></strong>
+            </h4>
+            <hr />
+            <a class="heading-elements-toggle">
+                <i class="fa fa-ellipsis-v font-medium-3"></i>
+            </a>
+            <div class="heading-elements">
+                <ul class="list-inline mb-0">
+
+                    <li>
+                        <a data-action="expand"><i class="ft-maximize"></i></a>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+        <section id="divMarksInfo" style="display:none">
+            <div class="col-md-12  ">
+                <div class="card card border-teal border-lighten-2">
+                    <div class="text-center">
+
+                        <div class="card-body">
+                            <img id="studentImageExam" src="~/images/Developers/zabi.jpg" class="rounded-circle width-150  height-150" alt="Card image">
+                        </div>
+                        <div class="card-body">
+                            <h4 class="card-title" id="studentNameExam">Andrew Davis</h4>
+                            <h6 class="card-subtitle text-muted" id="studentPhone">0778989502</h6>
+                        </div>
+
+                    </div>
+                    <button type="button" id="btnBack" class="btn btn-outline-red btn-microsoft col-md-1 ">Back</button>
+                    <div class="list-group list-group-flush text-center" id="studentExamResult">
+                        <a href="#" class="list-group-item"><i class="ft-file-text"></i> Weekly</a>
+                        <div class="col-md-12  row">
+                            <a href="#" class="list-group-item"><i class="ft-edit"> Subjet : </i> 100</a>
+                            <a href="#" class="list-group-item"><i class="ft-check-square"> Subjet Marks : </i> 100</a>
+                            <a href="#" class="list-group-item"><i class="ft-check-square"> Obtain Marks :</i> 90</a>
+                            <a href="#" class="list-group-item"> <i class="ft-check-square"> Helped Marks :</i> 5</a>
+                            <a href="#" class="list-group-item"> <i class="ft-check-square"> Total Marks :</i> 95</a>
+                            <a href="#" class="list-group-item text-success"> <i class="ft-edit"> Edit</i> </a>
+                            <a href="#" class="list-group-item text-danger"> <i class="ft-trash"> Delete</i> </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            </section>
+            <section id="divInput" style="">
+
+                @Html.AntiForgeryToken()
+
+
+                <form asp-controller="Student" asp-action="AddStudentMarks" data-ajax="true" data-ajax-success="fnMarksSuccess(data)" method="post" id="frmStudentMark">
+
+                    <div class="col-md-12">
+                        <input hidden asp-for="exam.StudentId"  />
+                        <input hidden asp-for="exam.ExamId" value="0" />
+
+                        <div class="col-md-12 row">
+
+                            <div class="form-group col-md-4">
+                                <label asp-for="exam.ClassId" class=""></label>
+                                <select id="ClassesOfStudents" asp-for="exam.ClassId" style="height:45px;" onchange="loadStudents()" class="form-control " asp-items="@ViewBag.Classes">
+                                    <option value="">Select Class</option>
+                                </select>
+                                <span asp-validation-for="exam.ExamTypeId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group  col-md-4">
+                                <label asp-for="exam.ExamTypeId" class=""></label>
+                                <select asp-for="exam.ExamTypeId" style="height:45px;" class="form-control" onchange="loadStudents()" asp-items="@ViewBag.ExamType">
+                                    <option value="">Select Exam Type</option>
+                                </select>
+                                <span asp-validation-for="exam.ExamTypeId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group  col-md-4">
+                                <label asp-for="exam.Date" class=""></label>
+                                <input asp-for="exam.Date" placeholder="Date " type="datetime-local" style="height:45px;" onchange="loadStudents()" class="form-control" />
+                                <span asp-validation-for="exam.Date" class="text-danger"></span>
+                            </div>
+
+                        </div>
+                        <div class="col-md-12 row">
+                            <div class="form-group col-md-4">
+                                <label asp-for="exam.TotalMarks" class=""></label>
+                                <input asp-for="exam.TotalMarks" placeholder="Total Marks" class="form-control" />
+                                <span asp-validation-for="exam.TotalMarks" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label asp-for="exam.ObtainMarks" class=""></label>
+                                <input asp-for="exam.ObtainMarks" placeholder="Obtain Marks " class="form-control" />
+                                <span asp-validation-for="exam.ObtainMarks" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label asp-for="exam.HelpMarks" class=""></label>
+                                <input asp-for="exam.HelpMarks" placeholder="Help Marks" class="form-control" />
+                                <span asp-validation-for="exam.HelpMarks" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-12 row">
+                            <div class="form-group col-md-4">
+                                <label asp-for="exam.Description" class=""></label>
+                                <textarea asp-for="exam.Description" placeholder="Description" rows="1" class="form-control"></textarea>
+                                <span asp-validation-for="exam.Description" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-4  @ViewBag.Insert" style="margin-top:35px;justify-content:center">
+                                @*<button type="reset" id="btnStudentList" class="btn btn-outline-info  ">Student List</button>*@
+                                <button type="reset" id="btnReset" class="btn btn-warning  ">Clear</button>
+                                <button type="submit" id="btnSubmitEmployee" class="btn btn-primary  ">Assign</button>
+
+                            </div>
+                            <div class="form-group col-md-4  row " style="margin-top:35px;margin-left:8px;">
+                                <h2 class="font-italic font-large-1 font-weight-bold">Student Name :  </h2> &nbsp;
+                                <h2 id="studentName" class="font-italic font-large-1 font-weight-bold"></h2>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+
+            </section>
+
+            <section id="divTable" style="">
+
+                <table class="table  table-striped table-condensed table-bordered dataTables_scrollHead" id="tblStudent">
+                    <thead class="scrollable-container ps--scrolling-x">
+                        <tr role="row">
+                            <th style="max-width:1%;">#</th>
+                            <th class="col-md-1">Name</th>
+                            <th class="col-md-1">F/Name</th>
+                            <th class="col-md-1">Phone</th>
+                            <th class="col-md-1">ID Card No</th>
+                            <th class="col-md-1">School</th>
+                            <th class="col-md-1">Image</th>
+                            <th class="col-md-1">Details</th>
+                            @*<th style="max-width:1%;" class=" @ViewBag.Edit">Edit</th>*@
+                            <th style="max-width:1%;" class=" @ViewBag.Edit">Marks</th>
+                        </tr>
+                    </thead>
+
+                    <tbody></tbody>
+
+                </table>
+            </section>
+
+
+    </div>
+    <div id="div2" class="card col-md-6 offset-md-3" style="display:none">
+
+        <div class="card-header ">
+            <h4 class="card-title "><strong>Add Exam Type </strong></h4>
+            <hr />
+
+            <button type="button" id="btnAddExamType" class="btn  btn-info  @ViewBag.Insert" data-toggle="modal"
+                    data-target="#expense">
+                Add Exam Type
+            </button>
+        </div>
+
+        <table class="table . table-striped table-condensed table-bordered dataTables_scrollHead " id="tblExamType">
+            <thead class="scrollable-container ps--scrolling-x">
+                <tr role="row">
+                    <th style="max-width:20px;">#</th>
+                    <th class="col-md-4">exam type</th>
+                    <th class="col-md-1 @ViewBag.Edit"> Edit </th>
+                    <th class="col-md-1 ">  Delete</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+
+<form data-ajax="true" asp-action="DeleteExamType" data-ajax-method="post" asp-controller="Student" data-ajax-success="deleted(data)">
+    <input hidden id="deleteId" asp-for="examType.ExamTypeId" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+
+
+<form data-ajax="true" asp-action="FetchStudents" data-ajax-method="post" asp-controller="Student" data-ajax-success="deleted(data)">
+    <input hidden id="deleteId" asp-for="examType.ExamTypeId" />
+    <button type="submit" class="d-none" id="btnDelete"></button>
+</form>
+<input type="hidden" name="name" id="rowValue" value="" />
+
+@* modal for adding examtype *@
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="form-group">
+
+        <div class="modal fade text-left" id="expense" tabindex="-1" role="dialog" aria-labelledby="myModalLabel10"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary white">
+                        <h4 class="modal-title" id="myModalLabel100">Exam Type</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form data-ajax="true" asp-controller="Student" asp-action="SaveExamType" data-ajax-success="funSuccessExamType(data)" data-ajax-method="post" id="frmExamType">
+                            <hr />
+                            <input hidden asp-for="examType.ExamTypeId" value="0" />
+                            @*<div asp-validation-summary="All" class="text-danger"></div>*@
+                            <div class="form-group">
+                                <label asp-for="examType.ExamType" class=""></label>
+                                <input asp-for="examType.ExamType" placeholder="Exam Type" class="form-control" />
+                                <span asp-validation-for="examType.ExamType" class="text-danger"></span>
+                            </div>
+
+                            <div class="modal-footer ">
+                                <button type="reset" class="btn grey btn-outline-secondary" id="btnCloseExamType" data-dismiss="modal">Close</button>
+                                <button type="submit" id="btnSubmitExamType" class="btn btn-outline-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input hidden id="stdId" />
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+    <script>
+        var show = true;
+        $(document).ready(function () {
+           
+
+            $("#frmEmployee")[0].reset();
+            $("#browseImg").attr("src", "/images/StaticImages/browse.png");
+            $("#divSuccess").delay(6000).fadeOut();
+        })
+    </script>
+
+    @* Classes  *@
+    <script>
+    function loadClasses() {
+
+            $.ajax({
+                url: "/Class/FetchClass/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    var startHour = "";
+                    var startMinute = "";
+                    var endHour = "";
+                    var endMinute = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+
+
+                        if (col.startHour < 10) {
+                            startHour = ("0" + col.startHour).toString();
+                        }
+                        else {
+                            startHour = col.startHour.toString();
+                        }
+                        if (col.startHour < 10) {
+                            startMinute = ("0" + col.startMinute).toString();
+                        }
+                        else {
+                            startMinute = col.startMinute.toString();
+                        }
+                        ///////////////////////////////////////
+
+                        if (col.endHour < 10) {
+                            endHour = "0" + col.endHour;
+                        }
+                        else {
+                            endHour = col.endHour.toString();
+                        }
+                        if (col.endMinute < 10) {
+                            endMinute = "0" + col.endMinute;
+                        }
+                        else {
+                            endMinute = col.endMinute.toString();
+                        }
+                        tr += '<tr  role="row">' +
+                            '<td >' + col.className + '</td>' +
+                            '<td >' + col.department + '</td>' +
+                            '<td >' + col.classType + '</td>' +
+                            '<td >' + (startHour + ':' + startMinute + ' ' + col.startMiridiam) + '</td>' +
+                            '<td >' + (endHour + ':' + endMinute + ' ' + col.endMiridiam) + '</td>' +
+                            '<td >' + col.shift + '</td>' +
+                            '<td >' + col.startDateShow + '</td>' +
+                            '<td >' + col.endDateShow + '</td>' +
+                            '<td >' + col.totalFee + '</td>' +
+                            ' <td  class="@ViewBag.Edit"><button type="button" onclick="fnAssignStudentToClass(' + col.classId + ',\'' + col.totalFee + '\',\'' + i + '\')" class="btn btn-primary"><i id="' + (i) + '" class=" chk"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblClasses").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblClasses>tbody").html("").html(tr);
+
+                    $("#tblClasses").DataTable({
+                            "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                        });
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+    }
+    function AddStudentClassModal(studentId) {
+        $("#stdId").val(studentId)
+        $("#btnResetAssign").trigger("click");
+  }
+    function fnAssignStudentToClass(classId, fee, i) {
+
+
+        $("#stdClass_StudentId").val($("#stdId").val())
+        $("#stdClass_ClassId").val(classId)
+        $("#stdClass_Fee").val(fee)
+        $(".chk").removeClass("fa fa-check");
+        $("#" + i).toggleClass("fa fa-check");
+    }
+    $("#stdClass_PaidAmount").keyup(function () {
+        var discount = (parseInt($("#stdClass_Fee").val()) * parseInt($("#stdClass_Discount").val())) / 100
+        var remain = (parseInt($("#stdClass_Fee").val()) - parseInt($("#stdClass_PaidAmount").val()) - discount)
+
+        $("#stdClass_Remain").val(remain)
+    })
+    $("#stdClass_Discount").keyup(function () {
+        var discount = (parseInt($("#stdClass_Fee").val()) * parseInt($("#stdClass_Discount").val())) / 100
+        var remain = (parseInt($("#stdClass_Fee").val()) - parseInt($("#stdClass_PaidAmount").val()) - discount)
+
+        $("#stdClass_Remain").val(remain)
+    })
+    function fnClassAssignedSuccess(data) {
+
+        toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+        $("#fromStClass")[0].reset();
+        $("#btnResetAssign").trigger("click");
+        loadStudents();
+    }
+    </script>
+    @* Student marks script functions *@
+<script>
+
+        function loadStudents() {
+        $.ajax({
+            url: "/Student/FetchStudentsForExam/?stdClassId=" + $("#ClassesOfStudents :selected").val()+"&ExamType=" + $("#exam_ExamTypeId :selected").val() + "&Date=" + $("#exam_Date").val() + "",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                success: function (result) {
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+                        var details = "";
+                        if (col.details == "null") {
+                            details = "";
+
+                        }
+                        else {
+                            details = col.details;
+                        }
+                        console.log(result);
+
+                        if (col.assigned == null) {
+                            tr += '<tr  role="row">' +
+                                '<td >' + (i + 1) + '</td>' +
+                                '<td >' + col.name + '</td>' +
+                                '<td >' + col.fName + '</td>' +
+                                '<td >' + col.phone + '</td>' +
+                                '<td >' + col.idCard + '</td>' +
+                                '<td >' + col.school + '</td>' +
+                                ' <td><img src=' + col.image + ' height="100" width="100"></td>' +
+                                ' <td  class="@ViewBag.Edit"><button type="button" onclick="fnStudentExamDetails(' + col.studentId + ',\'' + col.name + '\',\'' + col.image + '\',\'' + col.phone + '\')" class="btn btn-primary"><i class="fa fa-edit"></i></button></td>' +
+                                ' <td  class="@ViewBag.Edit"><button type="button" onclick="fnAddStudentMarks(' + col.studentId + ',\'' + col.name + '\')" class="btn btn-primary"><i class="fa fa-plus"></i></button></td>' +
+                                '</tr>';
+                        }
+                    })
+                    var table = $("#tblStudent").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblStudent>tbody").html("").html(tr);
+
+                    $("#tblStudent").DataTable({
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true
+                        });
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function fnStudentExamDetails(studentId,studentName,image,phone) {
+              $.ajax({
+                  url: "/Student/FetchStudentsExamInfo/?classId=" + $("#ClassesOfStudents :selected").val() + "&studentId=" + studentId +"",
+                type: "POST",
+                contentType: "application/json",
+
+                datatype: "JSON",
+                  success: function (result) {
+                      var tr = "";
+                      if (result == 0) {
+                          toastr.warning("Student not participated in any exam.", '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+
+                      } else {
+                          $.each(result, function (i, col) {
+
+
+                              tr += ' <a href="#" class="list-group-item font-weight-bold font-medium-4 text-warning"><i class="ft-file-text" ></i> ' + col.examType + ', Date : ' + col.dateShow + '</a>               ' +
+                                  ' <div class="col-md-12  row" >                                                                  ' +
+                                  '   <a href="#" class="list-group-item" > <i class="ft-edit"> Subjet : </i> ' + col.subject + '</a >' +
+                                  '   <a href="#" class="list-group-item"><i class="ft-check-square"> Subjet Marks : </i> ' + col.subjectMarks + '</a>  ' +
+                                  '   <a href="#" class="list-group-item"><i class="ft-check-square"> Obtain Marks :</i> ' + col.obtainMarks + '</a>    ' +
+                                  '   <a href="#" class="list-group-item"> <i class="ft-check-square"> Helped Marks :</i> ' + col.helpedMarks + '</a>    ' +
+                                  '   <a href="#" class="list-group-item"> <i class="ft-check-square"> Total Marks :</i> ' + col.totalMarks + '</a>    ' +
+                                  '   <a href="#" class="list-group-item text-success" onclick="fnEditStudentMarks(' + studentId + ',\'' + col.examId + '\',\'' + col.classId + '\',\'' + col.examTypeId + '\',\'' + col.date + '\',\'' + col.subjectMarks + '\',\'' + col.obtainMarks + '\',\'' + col.helpedMarks + '\',\'' + col.description + '\')"> <i class="ft-edit"> Edit</i> </a>          ' +
+                                  '   <a href="#" class="list-group-item text-danger" onclick="fnDeleteStudentMarks(' + col.examId + ')" > <i class="ft-trash"> Remove</i> </a> ' +
+                                  ' </div>';
+
+                          })
+
+                          $("#studentExamResult").html('').append(tr);
+                          $("#studentNameExam").text(studentName)
+                          $("#studentPhone").text(phone)
+                          $("#studentImageExam").attr("src", image);
+                          $("#divMarksInfo").show();
+                          $("#divInput").hide();
+
+                      }
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+
+            })
+    } function fnDeleteStudentMarks(examId) {
+        swal({
+            title: "Do you want to remove marks ???",
+            text: "",
+            icon: "warning",
+            buttons: {
+                cancel: {
+                    text: "No",
+                    value: null,
+                    visible: true,
+                    className: "",
+                    closeModal: true,
+                },
+                confirm: {
+                    text: "Yes",
+                    value: true,
+                    visible: true,
+                    className: "",
+                    closeModal: true
+                }
+            }
+        }).then((isConfirm) => {
+            if (isConfirm) {
+                   $.ajax({
+                       url: "/Student/DeleteStudentExamMarks/?examId=" + examId+"",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                       success: function (result) {
+                           toastr.success(result, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+                           $("#divMarksInfo").hide();
+                           $("#divInput").show();
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+            })
+            }
+        });
+
+    }
+    function fnEditStudentMarks(studentId,examId,classId,examTypeId,date,totalMarks,obtainMarks,helpedMarks,description) {
+        $("#exam_ExamId").val(examId)
+        $("#exam_StudentId").val(studentId)
+        $("#exam_CassId").val(classId)
+        $("#exam_ExamTypeId").val(examTypeId)
+        $("#exam_Date").val(date)
+        $("#exam_TotalMarks").val(totalMarks)
+        $("#exam_ObtainMarks").val(obtainMarks);
+        $("#exam_HelpMarks").val(helpedMarks);
+        $("#exam_Description").val(description);
+        $("#btnSubmitEmployee").text("Update");
+        $("#divMarksInfo").hide();
+        $("#divInput").show();
+    }
+    function fnAddStudentMarks(studentId, stdName) {
+        $("#exam_StudentId").val(studentId);
+        $("#studentName").text(stdName)
+        $("#btnSubmitEmployee").text("Assign");
+        $("#divMarksInfo").hide();
+        $("#divInput").show();
+        }
+        function fnMarksSuccess(data) {
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            $("#exam_ObtainMarks").val("");
+            $("#exam_HelpMarks").val("");
+            $("#exam_Description").val("");
+            $("#exam_ExamId").val(0)
+            $("#btnSubmitEmployee").text("Assign");
+            loadStudents();
+
+        }
+
+</script>
+
+    @* show and hide tables code *@
+    <script>
+        $("#btnReset").click(function () {
+            $("#exam_ClassId").html('');
+        })
+        $("#btnBack").click(function () {
+            $("#divMarksInfo").hide();
+            $("#divInput").show();
+        })
+        
+        var type = true;
+        $("#btn").click(function () {
+            if (type) {
+
+                $("#div2").show();
+                $("#divInput").hide();
+                $("#divTable").hide();
+                $("#divMarksInfo").hide();
+                LoadExamType();
+                type = false;
+                $("#btn").text("Student List");
+
+            } else {
+
+                $("#divInput").show();
+                $("#divTable").show();
+                $("#div2").hide();
+                type = true;
+
+                $("#btn").text("Add Exam Type");
+            }
+
+        });
+    </script>
+    @* Exam type script functions *@
+    <script>
+
+        var update = false;
+        function LoadExamType() {
+
+            $.ajax({
+                url: "/Student/LoadExamType/",
+                type: "POST",
+                contentType: "application/json",
+                datatype: "JSON",
+                success: function (result) {
+
+                    var tr = "";
+                    console.log(result)
+                    $.each(result, function (i, col) {
+
+                        tr += '<tr class="odd" role="row">' +
+
+                            '<td>' + (i + 1) + '</td>' +
+                            ' <td id=' + i + '>' + col.examType1 + '</td>' +
+                            ' <td class="@ViewBag.Edit"><button type="button" onclick="EditExamType(' + col.examTypeId + ',\'' + col.examType1 + '\',\'' + i + '\')" class="btn btn-primary"><i class="fa fa-edit"></i></button></td>' +
+                            ' <td ><button type="button" onclick="fnDeleteExamType(' + col.examTypeId + ')" class="btn btn-danger"><i class="fa fa-trash-o"></i></button></td>' +
+                            '</tr>';
+
+                    })
+                    var table = $("#tblExamType").dataTable();
+                    table.fnDestroy();
+
+                    $("#tblExamType>tbody").html("").html(tr);
+
+                    $("#tblExamType").DataTable({
+                        "lengthMenu": [[5, 10, 20, -1], [5, 15, 50, "All"]],
+                            stateSave: true,
+                            })
+
+
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+
+                }
+
+            })
+        }
+        function funSuccessExamType(data) {
+            LoadExamType();
+            $("#frmExamType")[0].reset();
+            $("#btnCloseExamType").trigger("click");
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            $("#btnSubmitExamType").text("Save");
+            $("#btnCloseExamType").trigger("click");
+        }
+
+        function EditExamType(id, name, rowid) {
+            $("#rowValue").val(rowid)
+
+            $("#btnAddExamType").trigger("click");
+            $("#btnCloseExamType").trigger("click");
+
+            $("#examType_ExamType").val(name);
+            $("#examType_ExamTypeId").val(id);
+            $("#btnSubmitExamType").text("Update");
+
+            update = true;
+
+        }
+        function fnDeleteExamType(comId) {
+            $("#deleteId").val(comId);
+            swal({
+                title: "Do you want to delete ???",
+                text: "",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "No",
+                        value: null,
+                        visible: true,
+                        className: "",
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "Yes",
+                        value: true,
+                        visible: true,
+                        className: "",
+                        closeModal: true
+                    }
+                }
+            }).then((isConfirm) => {
+                if (isConfirm) {
+                    $("#btnDelete").trigger("click");
+                }
+            });
+
+        }
+
+        function deleted(data) {
+
+            toastr.success(data, '', { "progressBar": true, positionClass: 'toast-top-right', containerId: 'toast-top-right' });
+            LoadExamType();
+
+        }
+        $("#btnAddExamType").click(function () {
+            $("#btnSubmitExamType").text("Save");
+            $("#btnCloseExamType").trigger("click");
+        })
+    </script>
+}

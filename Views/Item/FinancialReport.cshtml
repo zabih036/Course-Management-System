@@ -1,0 +1,364 @@
+﻿@model AllViewModel
+
+@{
+    ViewData["Title"] = "FinancialReport";
+    Layout = "~/Views/Shared/_Metronic.cshtml";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>$("#financialreport").addClass("active")</script>
+
+@using Microsoft.Extensions.Options
+@inject IOptions<SettingOptions> op
+
+<section id="custom-listgroup">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="">مالي راپور</h2>
+                    <div class="col-md-12" id="reportbtns">
+
+
+                        @* //////////////////////  د نن ورځې راپور///////////////// *@
+
+
+                        @* //////////////////////  د معلوم وخت راپور///////////////// *@
+                        <div class="col-md-12 container-fluid card">
+                            <form asp-controller="Item" data-ajax="true" data-ajax-method="post" data-ajax-success="loadReport(data)" asp-action="ManualReprot">
+                                <button class="btn btn-info btn-md" onclick="todaysreport()">د نن ورځې</button>
+                                <button class="btn btn-success btn-md" onclick="currentMonth()">روان میاشت</button>
+                                <button class="btn btn-warning btn-md" onclick="lastMonth()">تېر میاشت</button>
+                                <button class="btn btn-info btn-md" onclick="currentYear()">روان کال </button>
+                                <button class="btn btn-success btn-md" onclick="lastYear()">تېر کال</button>
+                                <button class="btn btn-info btn-md" id="btnManualReport">معلوم وخت</button>
+
+                                <div id="specific" class="col-md-6 row m-0 p-0" style="display:none">
+                                    <div class="row col-md-5 p-0 m-0">
+                                        <h3 class="col-md-push-4 p-0 m-0 mt-1">
+                                            د نیټې څخه
+                                        </h3>
+                                        &nbsp;
+                                        <div class="col-md-8 p-0 m-0">
+                                            <input class="form-control" style="height:45px;" asp-for="manulReport.FromDate">
+                                        </div>
+                                    </div>
+                                    <div class="row col-md-5 p-0 m-0">
+                                        <h3 class=" col-md-5 p-0 m-0 mt-1"> تر نیټې پورې</h3>
+                                        <div class="col-md-7 p-0 m-0">
+                                            <input class="form-control" style="height:45px;" asp-for="manulReport.ToDate">
+                                        </div>
+                                    </div>
+                                    &nbsp;
+                                    <div class=" col-md-1 p-0 m-0">
+                                        <button type="submit" class="btn btn-default  btn-info">راپور ښودل</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+
+                        @* /////////////////////////////////////////////////// *@
+                        <div class="d-none">
+                            <form data-ajax="true" data-ajax-url="/Item/FetchFinanceReport" data-ajax-success="loadReport(data)" data-ajax-method="post">
+                                <input type="hidden" class="" value="1" name="reportType" id="reportType" />
+                                <button type="submit" id="btnsubmitReport">submit</button>
+                            </form>
+                        </div>
+                    </div>
+                    <a class="heading-elements-toggle"><i class="fa fa-ellipsis font-medium-3"></i></a>
+                    <div class="heading-elements">
+                        <ul class="list-inline mb-0">
+                            <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                            <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                            <li><a class="btn btn-primary" onclick="printReport()"><i class="ft-printer"></i>&nbsp;&nbsp; چاپ</a></li>
+                            <li><a class="btn btn-primary" onclick="singleItem()"><i class="" id="btnreport">د یو جنس مالي راپور</i></a></li>
+
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-content collapse show">
+                    <div class="card-body" id="printable">
+
+                        <div class="row">
+                            <div class="col-md-12 text-center d-none" id="corporation">
+                                <p style="font-style:oblique">
+                                    <label style="font-size:x-large">@op.Value.CorporationName</label><br />
+                                    <label style="font-size:larger">@op.Value.CorporationNameEnglish</label><br />
+                                    <label style="font-size:x-large">مالي راپور</label><br />
+                                    <label class="float-right" style="font-size:x-large" id="date"></label>
+                                </p>
+                                <br /><br /><br />
+                            </div>
+                            <div class="col-md-4" id="financial1">
+                                <div class="media d-flex">
+                                    <div class="media-body text-left">
+                                        <span class="bold alert" style="font-size:large;">افغانۍ مالي راپور (ګټه یا زیان)</span>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="icon-book-open primary font-large-2 float-right"></i>
+                                    </div>
+                                </div>
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:16%"><strong class="float-left">مجموعه اخیستل:</strong> <strong class="float-right" id="afghanipurchase">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:16%"><strong class="float-left">مجموعه خرڅ:</strong> <strong class="float-right" id="afghanisale">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:16%"><strong class="float-left">مجموعه قرضونه:</strong> <strong class="float-right" id="afghanidebit">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:16%"><strong class="float-left">مجموعه پر مونږ قرضونه:</strong> <strong class="float-right" id="afghanicredit">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:16%"><strong class="float-left">مجموعه مصارف:</strong> <strong class="float-right" id="afghaniexpence">0</strong></a>
+                                    <a href="#" dir="ltr" class="list-group-item list-group-item-action " style="height:16%;border:1px solid;font-size:xx-large"><strong class="float-left">:<label id="afghanilost">زیان</label> ګټه یا </strong> <strong class="float-right" id="afghanibenefit">0</strong></a>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="financial2">
+                                <div class="media d-flex">
+                                    <div class="media-body text-left">
+                                        <span class="bold alert" style="font-size:large;">کلداري مالي راپور (ګټه یا زیان)</span>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="icon-book-open primary font-large-2 float-right"></i>
+                                    </div>
+                                </div>
+                                <div class="list-group" style="height:94%">
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:20%"><strong class="float-left">مجموعه اخیستل:</strong> <strong class="float-right" id="rupepurchase">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه خرڅ:</strong> <strong class="float-right" id="rupesale">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه قرضونه:</strong> <strong class="float-right" id="rupedebit">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه پر مونږ قرضونه:</strong> <strong class="float-right" id="rupecredit">0</strong></a>
+                                    @*<a href="#" class="list-group-item list-group-item-acti nger" style="height:16%"><strong class="float-left">مجموعه مصارف:</strong> <strong class="float-right" id="rupeexpence">0</strong></a>*@
+                                    <a href="#" dir="ltr" class="list-group-item list-group-item-action " style="height:19%;border:1px solid;font-size:large"><strong class="float-left">:<label id="rupelost">زیان</label> ګټه یا</strong> <strong class="float-right" id="rupebenefit">0</strong></a>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="financial3">
+                                <div class="media d-flex">
+                                    <div class="media-body text-left">
+                                        <span class="bold alert" style="font-size:large;">ډالري مالي راپور (ګټه یا زیان)</span>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="icon-book-open primary font-large-2 float-right"></i>
+                                    </div>
+                                </div>
+                                <div class="list-group" style="height:95%">
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه اخیستل:</strong> <strong class="float-right" id="dollerpurchase">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه خرڅ:</strong> <strong class="float-right" id="dollersale">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه قرضونه:</strong> <strong class="float-right" id="dollerdebit">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه پر مونږ قرضونه:</strong> <strong class="float-right" id="dollerdebit">0</strong></a>
+                                    @*<a href="#" class="list-group-item list-group-item-actionger" style="height:16%"><strong class="float-left">مجموعه مصارف:</strong> <strong class="float-right" id="dollercredit">0</strong></a>*@
+                                    <a href="#" dir="ltr" class="list-group-item list-group-item-action " style="height:19%;border:1px solid;font-size:large"><strong class="float-left">:<label id="dollerlost">زیان</label> ګټه یا</strong> <strong class="float-right" id="dollerbenefit">0</strong></a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12" id="singleitemReport" style="display:none">
+                                <div class="col-md-6 offset-3">
+                                    <form data-ajax="true" data-ajax-url="/Item/SingleItemFinancialReport" data-ajax-success="frmSuccess(data)" data-ajax-method="post" id="frmCustomerReg">
+
+                                        <div class="form-group col-md-8 float-left">
+                                            <label asp-for="purchase.ItemID" class=""></label>
+                                            <select asp-for="purchase.ItemID" asp-items="@ViewBag.item" class="form-control select2 select2-container select2-container--default select2-container--above" dir="rtl" style="width:100%">
+                                                <option value="">جنس انتخاب کړئ</option>
+                                            </select>
+                                            <span asp-validation-for="purchase.ItemID" class="text-danger"></span>
+
+                                        </div>
+                                        <div class="form-group col-md-8 float-left">
+                                            <label class="">د راپور ډول</label>
+                                            <select name="itemReportType" class="form-control select2 select2-container select2-container--default select2-container--above" dir="rtl" style="width:100%">
+                                                <option value="0">عمومي راپور</option>
+                                                <option value="1">د نن ورځې راپور</option>
+                                                <option value="2">د روان میاشت راپور</option>
+                                                <option value="3">د تېرې میاشتې راپور</option>
+                                                <option value="4">د روان کال راپور</option>
+                                                <option value="5">د تېر کال رابور</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-4 float-right" style="margin-top:5% ;">
+                                            <button type="submit" id="btnSubmit" class="btn btn-primary btn-icon-md"><i class="ft-save" id="btnsubmiticon"></i>&nbsp;<lable id="btnsubmitText">تایید</lable></button>
+
+                                        </div>
+                                    </form>
+                                    <br /><br />
+
+                                </div>
+                                <div class="list-group col-md-6 offset-3" style="height:95%">
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه اخیستل:</strong> <strong class="float-right" id="singleitempurchase">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%"><strong class="float-left">مجموعه خرڅ:</strong> <strong class="float-right" id="singleitemsale">0</strong></a>
+                                    <a href="#" class="list-group-item list-group-item-action " style="height:19%;border:1px solid;font-size:large"><strong class="float-left">ګڼه یا زیان:</strong> <strong class="float-right" id="singleitembenefit">0</strong></a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script>
+    $(document).ready(function () {
+        todaysReport();
+    })
+    function printReport() {
+
+        $("#corporation").removeClass("d-none");
+        $("#btnSubmit").addClass("d-none");
+
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        today = yyyy + "-" + mm + "-" + dd;
+        $("#date").text(today);
+
+        let mainLayout = document.getElementById('printable').innerHTML;
+        var originalContent = document.body.innerHTML;
+        document.body.innerHTML = mainLayout;
+        $(document.body).css({ "background-color": "white" });
+        window.print();
+        document.body.innerHTML = originalContent;
+
+        $("#corporation").addClass("d-none");
+
+
+    }
+    function todaysReport() {
+        $.ajax({
+            url: '/Item/fetchFinanceReport/',
+            type: 'POST',
+            contentType: "application/json",
+            data: '{}',
+            datatype: "JSON",
+            success: function (result) {
+
+                loadReport(result);
+
+            },
+            error: function (err) {
+                console.log(err)
+            }
+        })
+    }
+    //function fetchLastMonthReport() {
+    //    var titleMessage = "د تیرې میاشتې مصارف: ";
+    //    $.ajax({
+    //        type: "GET",
+    //        url: "/Item/lastMontFinancialReport",
+    //        contentType: "application/json",
+    //        dataType: "json",
+    //        success: function (result) {
+    //            LoadReport(result);
+    //        }
+    //    })
+    //}
+    //function fetchLastYearReport() {
+    //    var titleMessage = "د تیرې میاشتې مصارف: ";
+    //    $.ajax({
+    //        type: "GET",
+    //        url: "/Item/lastYearFinancialReport",
+    //        contentType: "application/json",
+    //        dataType: "json",
+    //        success: function (result) {
+    //            LoadReport(result);
+    //        }
+    //    })
+    //}
+    function loadReport(result) {
+
+        $("#afghanipurchase").text(result.afghaniPur.toFixed(2));
+        $("#afghanisale").text(result.afghaniSale.toFixed(2));
+        $("#afghanidebit").text(result.afghaniDebit.toFixed(2));
+        $("#afghanicredit").text(result.afghaniCredit.toFixed(2));
+        $("#afghaniexpence").text(result.afghaniExpence.toFixed(2));
+        $("#afghanibenefit").text(((result.afghaniSale - result.afghaniSalepur) - result.afghaniExpence).toFixed(2));
+        if (((result.afghaniSale - result.afghaniSalepur) - result.afghaniExpence) < 0) {
+
+            $("#afghanibenefit").addClass("text-danger");
+            $("#afghanilost").addClass("text-danger");
+        }
+
+        ///////////////////////  Rupe  report  //////////////////////
+        $("#rupepurchase").text(result.rupePur.toFixed(2));
+        $("#rupesale").text(result.rupeSale.toFixed(2));
+        $("#rupedebit").text(result.rupeDebit.toFixed(2));
+        $("#rupecredit").text(result.rupeCredit.toFixed(2));
+        //$("#rupeexpence").text(result.rupeExpence);
+        $("#rupebenefit").text(((result.rupeSale - result.rupeSalepur) - result.rupeExpence).toFixed(2));
+        if (((result.rupeSale - result.rupeSalepur) - result.rupeExpence) < 0) {
+
+            $("#rupebenefit").addClass("text-danger");
+            $("#rupelost").addClass("text-danger");
+        }
+        ///////////////////////// Doller  Report  //////////////////
+        $("#dollerpurchase").text(result.dollerPur.toFixed(2));
+        $("#dollersale").text(result.dollerSale.toFixed(2));
+        $("#dollerdebit").text(result.dollerDebit.toFixed(2));
+        $("#dollercredit").text(result.dollerCredit.toFixed(2));
+        //$("#dollerexpece").text(result.dollerExpence);
+        $("#dollerbenefit").text(((result.dollerSale - result.dollerSalepur) - result.dollerExpence).toFixed(2));
+        if (((result.dollerSale - result.dollerSalepur) - result.dollerExpence) < 0) {
+
+            $("#dollerbenefit").addClass("text-danger");
+            $("#dollerlost").addClass("text-danger");
+        }
+    }
+    function frmSuccess(data) {
+
+        console.log(data);
+        $("#singleitempurchase").text(data.purchase.toFixed(2));
+        $("#singleitemsale").text(data.sale.toFixed(2));
+        $("#singleitembenefit").text(data.sale - data.pursale.toFixed(2));
+    }
+    function singleItem() {
+        if ($("#btnreport").text() == "د یو جنس مالي راپور") {
+            $("#singleitemReport").show(500);
+            $("#financial1").hide();
+            $("#financial2").hide();
+            $("#financial3").hide();
+            $("#reportbtns").hide();
+            $("#btnreport").text("عمومي مالي راپور")
+        }
+        else {
+            $("#singleitemReport").hide();
+            $("#financial1").show(500);
+            $("#financial2").show(500);
+            $("#financial3").show(500);
+            $("#reportbtns").show();
+
+            $("#btnreport").text("د یو جنس مالي راپور")
+
+        }
+
+    }
+
+    ////////////////////// Assigning report type  //////
+    function todaysreport() {
+        $("#specific").hide();
+        $("#reportType").val(1);
+        $("#btnsubmitReport").trigger("click");
+    }
+    function currentMonth() {
+        $("#specific").hide();
+        $("#reportType").val(2);
+        $("#btnsubmitReport").trigger("click");
+    }
+    function lastMonth() {
+        $("#specific").hide();
+        $("#reportType").val(3);
+        $("#btnsubmitReport").trigger("click");
+    }
+    function currentYear() {
+        $("#specific").hide();
+        $("#reportType").val(4);
+        $("#btnsubmitReport").trigger("click");
+    }
+    function lastYear() {
+        $("#specific").hide();
+        $("#reportType").val(5);
+        $("#btnsubmitReport").trigger("click");
+    }
+    /////////////   Manual report  ////////////////
+    $("#btnManualReport").click(function () {
+        $("#specific").show();
+    })
+</script>
